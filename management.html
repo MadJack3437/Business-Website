@@ -13,32 +13,26 @@
         }
 
         header { text-align: center; padding: 20px 0 10px 0; flex-shrink: 0; }
-        /* Red Logo Border */
         .logo { width: 100px; border-radius: 50%; border: 2px solid #ef4444; box-shadow: 0 0 15px rgba(239, 68, 68, 0.3); }
-        /* Red Heading */
         h1 { color: #ef4444; text-transform: uppercase; letter-spacing: 2px; font-size: 1.2rem; margin: 10px 0; }
         
         .nav-link { color: #94a3b8; text-decoration: none; font-size: 0.85rem; font-weight: bold; margin-bottom: 10px; display: inline-block; }
         .nav-link:hover { color: #ef4444; }
 
-        /* Main Scrollable Content Area */
         .content-area {
             flex: 1; width: 100%; max-width: 900px; display: flex; flex-direction: column;
             align-items: center; overflow-y: auto; padding: 10px; box-sizing: border-box;
             scrollbar-width: thin; scrollbar-color: #ef4444 #020617;
         }
 
-        /* Search Bar */
         .search-container { width: 100%; margin-bottom: 15px; }
         #staff-search {
             width: 100%; padding: 12px 15px; border-radius: 10px; border: 1px solid #1e293b;
             background: #0f172a; color: white; font-size: 0.9rem; box-sizing: border-box;
             outline: none; transition: 0.3s;
         }
-        /* Red Focus */
         #staff-search:focus { border-color: #ef4444; box-shadow: 0 0 10px rgba(239, 68, 68, 0.2); }
 
-        /* Red Top Performer Spotlight */
         #top-member-banner {
             width: 100%; background: linear-gradient(90deg, #1e293b, #7f1d1d);
             border: 1px solid #ef4444; border-radius: 12px; padding: 15px;
@@ -50,29 +44,24 @@
             background: #1e293b; padding: 15px 20px; border-radius: 12px; margin-bottom: 15px; box-sizing: border-box; 
         }
         
-        /* Red Totals */
         .totals { font-weight: bold; color: #ef4444; font-size: 0.95rem; }
 
         .log-card {
             width: 100%; background: #0f172a; border: 1px solid #1e293b; 
             border-radius: 12px; padding: 15px; margin-bottom: 10px; box-sizing: border-box;
-            transition: transform 0.2s;
         }
         .log-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
-        /* Red Date Highlight */
         .log-date { font-weight: bold; color: #f87171; }
         
-        .btn-red { background: #b91c1c; color: white; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer; font-size: 0.75rem; font-weight: bold; }
-        .btn-red:hover { background: #ef4444; }
+        .btn-red { background: #b91c1c; color: white; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer; font-size: 0.75rem; font-weight: bold; transition: 0.2s; }
+        .btn-red:hover { background: #ef4444; transform: scale(1.05); }
 
-        /* Fixed Footer */
         footer { 
             width: 100%; padding: 15px 20px 25px 20px; background: #020617; 
             display: flex; justify-content: space-between; align-items: center;
             flex-shrink: 0; border-top: 1px solid #1e293b; box-sizing: border-box;
         }
-        /* Red Back Button */
-        .back-btn { padding: 12px 30px; background: #0f172a; color: #ef4444; border: 2px solid #ef4444; border-radius: 10px; font-weight: 800; cursor: pointer; text-decoration: none; font-size: 0.85rem; order: 2; }
+        .back-btn { padding: 12px 30px; background: #0f172a; color: #ef4444; border: 2px solid #ef4444; border-radius: 10px; font-weight: 800; cursor: pointer; text-decoration: none; font-size: 0.85rem; order: 2; transition: 0.3s;}
         .back-btn:hover { background: #ef4444; color: #020617; }
         
         .powered-by {
@@ -80,8 +69,8 @@
             letter-spacing: 1px; font-weight: 600; order: 1;
         }
 
-        /* Red highlight for search matches */
         .match-highlight { color: #f87171; font-weight: bold; }
+        .search-results-box { margin-top:8px; padding:8px; border-top:1px solid #1e293b; background: rgba(239, 68, 68, 0.05); border-radius: 6px; }
     </style>
 </head>
 <body>
@@ -129,11 +118,22 @@
 
             container.innerHTML = '';
             let grandTotalMins = 0;
-            let firstLogMVP = "";
+            let currentMVPMins = -1;
+            let currentMVPName = "";
 
-            const displayLogs = [...logs].reverse();
+            // We process the logs to get the lifetime total REGARDLESS of search
+            logs.forEach(log => {
+                const rows = log.rawData.trim().split(/\r?\n/);
+                for (let i = 1; i < rows.length; i++) {
+                    const cols = rows[i].split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
+                    if (cols.length < 4) continue;
+                    const mins = parseInt(cols[3].replace(/"/g, '')) || 0;
+                    grandTotalMins += mins;
+                }
+            });
 
-            displayLogs.forEach((log, index) => {
+            // Display logs in reverse (newest first)
+            [...logs].reverse().forEach((log, index) => {
                 const rows = log.rawData.trim().split(/\r?\n/);
                 let reportMins = 0;
                 let reportTopMins = -1;
@@ -150,11 +150,16 @@
                     const mins = parseInt(cols[3].replace(/"/g, '')) || 0;
                     
                     reportMins += mins;
-                    grandTotalMins += mins;
 
                     if (mins > reportTopMins) {
                         reportTopMins = mins;
                         reportTopMember = `${name} (${(mins/60).toFixed(1)} hrs)`;
+                    }
+
+                    // Set Overall MVP based on the VERY newest log
+                    if (index === 0 && mins > currentMVPMins) {
+                        currentMVPMins = mins;
+                        currentMVPName = `${name} (${id}) — ${(mins/60).toFixed(1)} hrs`;
                     }
 
                     if (searchTerm && (name.toLowerCase().includes(searchTerm) || id.includes(searchTerm))) {
@@ -162,8 +167,6 @@
                         searchMatchDetails += `• ${name}: <span class="match-highlight">${(mins/60).toFixed(1)} hrs</span><br>`;
                     }
                 }
-
-                if (index === 0) firstLogMVP = reportTopMember;
 
                 if (!searchTerm || foundInSearch) {
                     const card = document.createElement('div');
@@ -176,25 +179,27 @@
                         <div style="font-size:0.8rem; color:#94a3b8;">
                             <strong>File:</strong> ${log.fileName}<br>
                             <strong>Weekly MVP:</strong> ${reportTopMember}
-                            ${searchTerm ? `<div style="margin-top:8px; padding-top:8px; border-top:1px solid #1e293b;"><strong>Search Results:</strong><br>${searchMatchDetails}</div>` : ''}
+                            ${searchTerm ? `<div class="search-results-box"><strong>Search Results:</strong><br>${searchMatchDetails}</div>` : ''}
                         </div>
                     `;
                     container.appendChild(card);
                 }
             });
 
-            if (container.innerHTML === '') {
-                container.innerHTML = `<p style="text-align:center; color:#64748b; margin-top:20px;">No results found</p>`;
+            if (logs.length === 0) {
+                container.innerHTML = `<p style="text-align:center; color:#64748b; margin-top:20px;">No data saved yet. Upload a CSV in the Staff Logs page.</p>`;
+            } else if (container.innerHTML === '' && searchTerm) {
+                container.innerHTML = `<p style="text-align:center; color:#64748b; margin-top:20px;">No staff found matching "${searchTerm}"</p>`;
             }
 
-            topBanner.style.display = firstLogMVP ? 'block' : 'none';
-            topInfo.innerText = firstLogMVP || "No data saved yet";
-            logCountDisp.innerText = `Saved Reports: ${logs.length}`;
+            topBanner.style.display = currentMVPName ? 'block' : 'none';
+            topInfo.innerText = currentMVPName || "No data saved yet";
+            logCountDisp.innerText = `Reports: ${logs.length}`;
             totalHrsDisp.innerText = `Lifetime: ${(grandTotalMins/60).toFixed(1)} hrs`;
         }
 
         function clearHistory() {
-            if (confirm("Are you sure? This deletes ALL history.")) {
+            if (confirm("⚠️ DANGER: This will permanently erase ALL saved business logs. This cannot be undone. Proceed?")) {
                 localStorage.removeItem('businessLogHistory');
                 location.reload();
             }
