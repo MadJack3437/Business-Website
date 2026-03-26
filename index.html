@@ -120,7 +120,7 @@
         tr { display: grid; grid-template-columns: 2fr 1fr 1fr; align-items: center; }
         .highlight-row { background: rgba(56, 189, 248, 0.2) !important; border-left: 4px solid var(--primary); }
 
-        #announcement-box { background: var(--bg); color: var(--text); padding: 15px; font-size: 0.85rem; white-space: pre-wrap; line-height: 1.5; font-family: monospace; }
+        #announcement-box { background: var(--bg); color: var(--text); padding: 15px; font-size: 0.85rem; white-space: pre-wrap; line-height: 1.5; font-family: monospace; border: 1px solid var(--border); border-radius: 8px; }
         #copy-ann-btn { width: calc(100% - 30px); margin: 0 15px 15px 15px; padding: 12px; background: var(--primary); color: #fff; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; }
 
         #back-to-top {
@@ -342,7 +342,14 @@
             allStaff.sort((a, b) => b.mins - a.mins);
             const topID = allStaff.length > 0 ? allStaff[0].id : "ID_HERE";
 
-            generatedAnnouncement = `# Admin Work has been Completed\nFeel free to make suggestions in #suggestions\n-------------------------------------------------------------------------\nCongratulations to <@${topID}> for being Business Member of The Week!\n<@&799426295746265109>`;
+            // UPDATED ANNOUNCEMENT: Exact formatting requested
+            generatedAnnouncement = `___***Admin Work has been Completed***___
+Feel free to make suggestions in https://discord.com/channels/739604589627572286/1150135582513700875
+and if you need anything, feel free to dm a member of the team or make a https://discord.com/channels/739604589627572286/1148399710382608424 or a https://discord.com/channels/739604589627572286/1148398639207690290
+-------------------------------------------------------------------------
+Congratulations to <@${topID}> for having the most amount of hours this week and being our Business Member of The Week which also comes with 7D Elite, DM a member of Business Management for your elite. 
+<@&799426295746265109>`;
+
             document.getElementById('announcement-box').innerText = generatedAnnouncement;
             document.getElementById('ann-header-btn').style.display = 'flex';
 
