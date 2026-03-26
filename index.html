@@ -3,14 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Business Duty Logs</title>
+    <title>Weekly Business Logs</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
     <header>
-        <h1>Business Staff Logs</h1>
-        <p>Drop your <b>CSV</b> file here to calculate weekly hours.</p>
+        <img src="https://i.postimg.cc/dtHffs97/75cb50d9389d910e9781b944fceed68b.webp" alt="Business Logo" class="logo">
+        <h1>Weekly Business Logs</h1>
+        <p>Drop your <b>CSV</b> file here to calculate staff hours.</p>
     </header>
 
     <main>
@@ -30,6 +31,7 @@
                     <span id="total-hours-sum">Total Hours: 0</span>
                 </div>
                 <button id="copy-btn">Copy for Discord 📋</button>
+                <button id="reset-btn">Clear All 🗑️</button>
             </div>
 
             <table id="hours-table">
@@ -51,6 +53,7 @@
         const tableBody = document.getElementById('table-body');
         const tableContainer = document.getElementById('table-container');
         const copyBtn = document.getElementById('copy-btn');
+        const resetBtn = document.getElementById('reset-btn');
         const searchInput = document.getElementById('search-input');
         let discordOutput = "";
 
@@ -73,31 +76,20 @@
         }
 
         function cleanName(name) {
-            // Removes FiveM color codes (~r~, ~b~, etc) and extra quotes
             return name.replace(/~.*?~/g, '').replace(/"/g, '').trim();
         }
 
-        // Advanced CSV parser that handles quotes inside names
         function csvToArray(text) {
-            const p = Array(text.length);
-            let q = false, c = 0, buffer = "";
             const result = [];
             let row = [];
-
+            let q = false;
+            let buffer = "";
             for (let i = 0; i < text.length; i++) {
                 const char = text[i];
                 if (char === '"') q = !q;
-                else if (char === ',' && !q) {
-                    row.push(buffer);
-                    buffer = "";
-                } else if (char === '\n' && !q) {
-                    row.push(buffer);
-                    result.push(row);
-                    row = [];
-                    buffer = "";
-                } else {
-                    buffer += char;
-                }
+                else if (char === ',' && !q) { row.push(buffer); buffer = ""; }
+                else if (char === '\n' && !q) { row.push(buffer); result.push(row); row = []; buffer = ""; }
+                else { buffer += char; }
             }
             if (buffer) row.push(buffer);
             if (row.length > 0) result.push(row);
@@ -107,7 +99,6 @@
         function parseDutyCSV(text) {
             const data = csvToArray(text);
             const headers = data[0].map(h => h.trim().toLowerCase());
-            
             const nameIdx = headers.indexOf('name');
             const idIdx = headers.indexOf('id');
             const timeIdx = headers.indexOf('time');
@@ -115,24 +106,18 @@
             tableBody.innerHTML = '';
             let count = 0;
             let totalMins = 0;
-            discordOutput = "**Weekly Staff Hours:**\n";
+            discordOutput = "**Weekly Business Logs:**\n";
 
             for (let i = 1; i < data.length; i++) {
                 const columns = data[i];
                 if (columns.length < 3) continue;
-                
-                const rawName = columns[nameIdx] || "Unknown";
-                const discordId = columns[idIdx] || "N/A";
+                const name = cleanName(columns[nameIdx] || "Unknown");
+                const discordId = (columns[idIdx] || "N/A").trim();
                 const minutes = parseInt(columns[timeIdx]) || 0;
                 const hours = (minutes / 60).toFixed(1);
-                const name = cleanName(rawName);
 
                 const tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td class="staff-name">${name}</td>
-                    <td class="discord-id">${discordId}</td>
-                    <td class="hours-val">${hours} hrs</td>
-                `;
+                tr.innerHTML = `<td>${name}</td><td>${discordId}</td><td class="hours-val">${hours} hrs</td>`;
                 tableBody.appendChild(tr);
                 
                 discordOutput += `• **${name}**: ${hours} hours\n`;
@@ -143,15 +128,21 @@
             document.getElementById('staff-count').innerText = `Total Staff: ${count}`;
             document.getElementById('total-hours-sum').innerText = `Total Hours: ${(totalMins/60).toFixed(1)}`;
             tableContainer.style.display = 'block';
+            dropZone.style.display = 'none';
         }
 
         searchInput.onkeyup = function() {
             const filter = searchInput.value.toLowerCase();
             const rows = tableBody.getElementsByTagName('tr');
             for (let i = 0; i < rows.length; i++) {
-                const text = rows[i].textContent.toLowerCase();
-                rows[i].style.display = text.includes(filter) ? "" : "none";
+                rows[i].style.display = rows[i].textContent.toLowerCase().includes(filter) ? "" : "none";
             }
+        };
+
+        resetBtn.onclick = () => {
+            tableContainer.style.display = 'none';
+            dropZone.style.display = 'block';
+            fileInput.value = "";
         };
 
         copyBtn.onclick = () => {
