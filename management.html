@@ -3,36 +3,39 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Business Management</title>
+    <title>Management Portal</title>
     <style>
         body { font-family: 'Inter', sans-serif; background-color: #020617; color: #f1f5f9; margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center; }
         header { text-align: center; margin-bottom: 30px; }
-        .logo { width: 100px; height: auto; border-radius: 50%; border: 2px solid #a855f7; box-shadow: 0 0 20px rgba(168, 85, 247, 0.3); }
-        h1 { color: #a855f7; margin: 10px 0; text-transform: uppercase; letter-spacing: 2px; }
-        .nav-link { color: #38bdf8; text-decoration: none; font-size: 0.9rem; margin-bottom: 20px; font-weight: bold; }
+        .logo { width: 100px; height: auto; border-radius: 50%; border: 2px solid #a855f7; }
+        h1 { color: #a855f7; text-transform: uppercase; margin: 10px 0; }
+        .nav-link { color: #38bdf8; text-decoration: none; font-weight: bold; margin-bottom: 20px; }
         
-        .management-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; width: 100%; max-width: 1000px; }
-        .card { background: #0f172a; border: 1px solid #1e293b; padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
-        .card h2 { color: #f1f5f9; font-size: 1.2rem; border-bottom: 1px solid #1e293b; padding-bottom: 10px; margin-top: 0; }
+        .management-grid { display: grid; grid-template-columns: 1fr; gap: 20px; width: 100%; max-width: 800px; }
+        .card { background: #0f172a; border: 1px solid #1e293b; padding: 20px; border-radius: 12px; }
+        .card h2 { color: #38bdf8; border-bottom: 1px solid #1e293b; padding-bottom: 10px; margin-top: 0; }
         
-        /* Archive Styling */
-        .archive-list { margin-top: 15px; }
-        .archive-item { 
-            background: #1e293b; padding: 15px; border-radius: 8px; margin-bottom: 15px; 
-            border-left: 4px solid #38bdf8;
+        .log-entry { 
+            background: #1e293b; padding: 15px; border-radius: 8px; margin-bottom: 15px; border-left: 4px solid #a855f7;
         }
-        .archive-header { margin-bottom: 10px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 5px; }
-        .archive-date { color: #a855f7; font-weight: bold; font-size: 0.9rem; text-transform: uppercase; }
-        .archive-filename { display: block; font-size: 0.8rem; color: #94a3b8; margin-top: 2px; }
+        .log-header-date { color: #a855f7; font-weight: bold; font-size: 1.1rem; display: block; margin-bottom: 5px; }
+        .log-filename { color: #94a3b8; font-size: 0.8rem; margin-bottom: 10px; display: block; }
         
-        .archive-actions { display: flex; gap: 10px; margin-top: 10px; }
-        .view-btn { background: #38bdf8; color: #020617; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer; font-size: 0.8rem; font-weight: bold; flex: 1; }
-        .delete-btn { background: #ef4444; color: white; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer; font-size: 0.8rem; font-weight: bold; }
+        .btn-group { display: flex; gap: 10px; }
+        button { flex: 1; padding: 8px; border-radius: 5px; border: none; font-weight: bold; cursor: pointer; }
+        .prev-btn { background: #38bdf8; color: #020617; }
+        .del-btn { background: #ef4444; color: white; }
 
-        .action-btn { display: block; width: 100%; padding: 10px; margin-top: 15px; background: #1e293b; color: #a855f7; text-align: center; border-radius: 6px; border: 1px solid #a855f7; font-weight: bold; cursor: pointer; text-decoration: none; }
+        /* Preview Modal */
+        #modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); justify-content: center; align-items: center; }
+        .modal-box { background: #0f172a; padding: 20px; border-radius: 12px; width: 90%; max-width: 600px; max-height: 80vh; overflow-y: auto; border: 1px solid #38bdf8; }
+        table { width: 100%; border-collapse: collapse; color: white; }
+        th, td { padding: 8px; border-bottom: 1px solid #1e293b; text-align: left; }
     </style>
 </head>
 <body>
+
+    <div id="modal"><div class="modal-box"><button onclick="closeModal()" style="background:#ef4444; color:white; margin-bottom:10px;">CLOSE</button><div id="modal-body"></div></div></div>
 
     <header>
         <img src="https://i.postimg.cc/dtHffs97/75cb50d9389d910e9781b944fceed68b.webp" alt="Logo" class="logo">
@@ -42,76 +45,58 @@
     <a href="index.html" class="nav-link">← Return to Staff Logs</a>
 
     <div class="management-grid">
-        <div class="card" style="grid-column: span 2; border-color: #38bdf8;">
-            <h2 style="color: #38bdf8;">📁 Saved Log History</h2>
-            <p style="font-size: 0.8rem; color: #64748b;">Every CSV you upload on the main page is automatically stored here by date.</p>
-            <div id="archive-container" class="archive-list">
-                </div>
-            <button class="action-btn" style="border-color: #ef4444; color: #ef4444; margin-top: 20px; width: auto;" onclick="clearAllLogs()">Wipe All History ⚠️</button>
+        <div class="card">
+            <h2>📁 Saved Log History</h2>
+            <div id="log-history-list"></div>
         </div>
     </div>
 
     <script>
-        window.onload = function() {
-            displayArchive();
-        };
+        window.onload = displayHistory;
 
-        function displayArchive() {
-            const container = document.getElementById('archive-container');
+        function displayHistory() {
+            const list = document.getElementById('log-history-list');
             const logs = JSON.parse(localStorage.getItem('businessLogHistory')) || [];
-
+            
             if (logs.length === 0) {
-                container.innerHTML = '<p style="text-align:center; opacity:0.5; padding: 20px;">No saved logs found. Upload a CSV on the main page to see it here.</p>';
+                list.innerHTML = "<p style='text-align:center; opacity:0.5;'>No logs saved. Go to the main page and click 'Save to Portal' after uploading a CSV.</p>";
                 return;
             }
 
-            container.innerHTML = '';
-            // We use reverse() to show newest logs at the top
+            list.innerHTML = "";
             logs.slice().reverse().forEach((log, index) => {
-                // Adjusting index for deletion since we reversed the display
                 const actualIndex = logs.length - 1 - index;
-                
                 const div = document.createElement('div');
-                div.className = 'archive-item';
+                div.className = 'log-entry';
                 div.innerHTML = `
-                    <div class="archive-header">
-                        <span class="archive-date">📅 Stored on: ${log.date}</span>
-                        <span class="archive-filename">File: ${log.fileName}</span>
-                    </div>
-                    <div class="archive-actions">
-                        <button class="view-btn" onclick="downloadLog(${actualIndex})">Download CSV 📥</button>
-                        <button class="delete-btn" onclick="deleteLog(${actualIndex})">Delete 🗑️</button>
+                    <span class="log-header-date">📅 ${log.date}</span>
+                    <span class="log-filename">Source: ${log.fileName}</span>
+                    <div class="btn-group">
+                        <button class="prev-btn" onclick="previewLog(${actualIndex})">View Data</button>
+                        <button class="del-btn" onclick="deleteLog(${actualIndex})">Delete</button>
                     </div>
                 `;
-                container.appendChild(div);
+                list.appendChild(div);
             });
         }
 
-        function downloadLog(index) {
+        function previewLog(idx) {
             const logs = JSON.parse(localStorage.getItem('businessLogHistory')) || [];
-            const log = logs[index];
-            const blob = new Blob([log.rawData], { type: 'text/csv' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `RESTORED_${log.fileName}`;
-            a.click();
-            URL.revokeObjectURL(url);
+            const log = logs[idx];
+            const rows = log.rawData.split('\n');
+            let html = "<table><tr><th>Name</th><th>ID</th><th>Mins</th></tr>";
+            for(let i=1; i<rows.length; i++) {
+                if(!rows[i].trim()) continue;
+                const cols = rows[i].split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
+                html += `<tr><td>${cols[0].replace(/"/g,'')}</td><td>${cols[1]}</td><td>${cols[2]}</td></tr>`;
+            }
+            html += "</table>";
+            document.getElementById('modal-body').innerHTML = html;
+            document.getElementById('modal').style.display = 'flex';
         }
 
-        function deleteLog(index) {
-            if(!confirm("Delete this log permanently?")) return;
-            let logs = JSON.parse(localStorage.getItem('businessLogHistory')) || [];
-            logs.splice(index, 1);
-            localStorage.setItem('businessLogHistory', JSON.stringify(logs));
-            displayArchive();
-        }
-
-        function clearAllLogs() {
-            if(!confirm("EXTREME WARNING: This will delete EVERY saved CSV. Proceed?")) return;
-            localStorage.removeItem('businessLogHistory');
-            displayArchive();
-        }
+        function closeModal() { document.getElementById('modal').style.display = 'none'; }
+        function deleteLog(idx) { if(confirm("Delete this log?")) { let logs = JSON.parse(localStorage.getItem('businessLogHistory')); logs.splice(idx, 1); localStorage.setItem('businessLogHistory', JSON.stringify(logs)); displayHistory(); } }
     </script>
 </body>
 </html>
