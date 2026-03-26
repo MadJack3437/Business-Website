@@ -19,7 +19,6 @@
         }
         h1 { color: #38bdf8; margin: 10px 0; text-transform: uppercase; letter-spacing: 2px; font-size: 1.5rem; }
         
-        /* Member of the Week - Gold/Neon Theme */
         #motw-container {
             width: 100%; max-width: 800px;
             background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
@@ -31,7 +30,7 @@
             display: none;
             box-shadow: 0 0 20px rgba(245, 158, 11, 0.2);
         }
-        .motw-title { color: #f59e0b; font-weight: bold; font-size: 1.1rem; text-transform: uppercase; margin-bottom: 10px; letter-spacing: 1px; }
+        .motw-title { color: #f59e0b; font-weight: bold; font-size: 1.1rem; text-transform: uppercase; margin-bottom: 10px; }
         #motw-name { font-size: 2rem; color: #fff; font-weight: 800; margin-bottom: 5px; }
         #motw-details { font-size: 1.1rem; color: #cbd5e1; font-family: monospace; }
         .highlight-gold { color: #f59e0b; font-weight: bold; }
@@ -64,16 +63,19 @@
     <header>
         <img src="https://i.postimg.cc/dtHffs97/75cb50d9389d910e9781b944fceed68b.webp" alt="Logo" class="logo">
         <h1>Weekly Business Logs</h1>
+        <div style="margin: 15px 0;">
+            <a href="staff.html" style="background: #1e293b; color: #38bdf8; padding: 8px 15px; text-decoration: none; border-radius: 5px; border: 1px solid #38bdf8; font-size: 0.9rem;">View Staff Info</a>
+        </div>
     </header>
 
     <div id="motw-container">
         <div class="motw-title">🏆 Business Member of the Week 🏆</div>
-        <div id="motw-name">Name</div>
+        <div id="motw-name">---</div>
         <div id="motw-details">ID: <span id="motw-id" class="highlight-gold">---</span> | Hours: <span id="motw-hrs-val" class="highlight-gold">0</span></div>
     </div>
 
     <main style="width: 100%; display: flex; flex-direction: column; align-items: center;">
-        <div id="drop-zone">
+        <div id="drop-zone" id="drop-zone">
             <p>Drag & Drop CSV here or click to browse</p>
             <input type="file" id="file-input" accept=".csv" hidden>
         </div>
@@ -107,24 +109,42 @@
         dropZone.onclick = () => fileInput.click();
         fileInput.onchange = (e) => handleFile(e.target.files[0]);
 
+        function cleanData(str) {
+            if(!str) return "";
+            return str.replace(/~.*?~/g, '').replace(/"/g, '').trim();
+        }
+
         function handleFile(file) {
             if(!file) return;
             const reader = new FileReader();
             reader.onload = (e) => {
-                const lines = e.target.result.split('\n');
+                const text = e.target.result;
+                const rows = text.split(/\r?\n/);
+                if (rows.length < 2) return;
+
+                // Find headers
+                const headers = rows[0].split(',').map(h => h.trim().toLowerCase());
+                const nameIdx = headers.indexOf('name');
+                const idIdx = headers.indexOf('id');
+                const timeIdx = headers.indexOf('time');
+
                 tableBody.innerHTML = '';
                 let totalMins = 0;
-                let topMember = { name: "", id: "", hours: 0 };
+                let topMember = { name: "N/A", id: "N/A", hours: -1 };
                 let discordText = "**Weekly Business Logs:**\n";
+                let memberCount = 0;
 
-                for (let i = 1; i < lines.length; i++) {
-                    if (!lines[i].trim()) continue;
-                    const cols = lines[i].split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
-                    const name = (cols[0] || "Unknown").replace(/~.*?~/g, '').replace(/"/g, '');
-                    const discordId = (cols[1] || "N/A").replace(/"/g, '');
-                    const mins = parseInt(cols[3]) || 0;
-                    const hours = parseFloat((mins / 60).toFixed(1));
+                for (let i = 1; i < rows.length; i++) {
+                    const line = rows[i].trim();
+                    if (!line) continue;
                     
+                    const cols = line.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
+                    
+                    const name = cleanData(cols[nameIdx]);
+                    const discordId = cleanData(cols[idIdx]);
+                    const mins = parseInt(cols[timeIdx]) || 0;
+                    const hours = parseFloat((mins / 60).toFixed(1));
+
                     if (hours > topMember.hours) {
                         topMember = { name: name, id: discordId, hours: hours };
                     }
@@ -132,15 +152,15 @@
                     const tr = document.createElement('tr');
                     tr.innerHTML = `<td>${name}</td><td style="color:#64748b">${discordId}</td><td class="hours-val">${hours} hrs</td>`;
                     tableBody.appendChild(tr);
+                    
                     discordText += `• **${name}**: ${hours} hours\n`;
                     totalMins += mins;
+                    memberCount++;
                 }
 
-                // Update Stats
-                document.getElementById('staff-count').innerText = `Business Members: ${lines.length - 1}`;
+                document.getElementById('staff-count').innerText = `Business Members: ${memberCount}`;
                 document.getElementById('total-hours-sum').innerText = `Total: ${(totalMins/60).toFixed(1)} hrs`;
                 
-                // Update MOTW with ID and Hours
                 document.getElementById('motw-name').innerText = topMember.name;
                 document.getElementById('motw-id').innerText = topMember.id;
                 document.getElementById('motw-hrs-val').innerText = topMember.hours + " hrs";
@@ -151,7 +171,7 @@
 
                 document.getElementById('copy-btn').onclick = () => {
                     navigator.clipboard.writeText(discordText);
-                    alert("Copied logs to clipboard!");
+                    alert("Copied!");
                 };
             };
             reader.readAsText(file);
