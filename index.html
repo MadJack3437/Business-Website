@@ -3,28 +3,34 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Business Hour Tracker</title>
+    <title>Business Duty Logs</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
     <header>
-        <h1>Staff Hour Logs</h1>
-        <p>Drag and drop your CSV file below to process hours.</p>
+        <h1>Business Staff Logs</h1>
+        <p>Drop your <b>dutylogs_category</b> CSV file here.</p>
     </header>
 
     <main>
         <div id="drop-zone">
-            <p>Drop CSV here or click to upload</p>
+            <p>Drag & Drop Duty Log CSV here <br><span>or click to browse</span></p>
             <input type="file" id="file-input" accept=".csv" hidden>
         </div>
 
         <div id="table-container" style="display: none;">
+            <div class="stats-bar">
+                <span id="staff-count">Total Staff: 0</span> | 
+                <span id="total-hours-sum">Total Hours: 0</span>
+                <button id="copy-btn">Copy for Discord 📋</button>
+            </div>
             <table id="hours-table">
                 <thead>
                     <tr>
+                        <th>Staff Name</th>
                         <th>Discord ID</th>
-                        <th>Hours Logged</th>
+                        <th>Total Hours</th>
                     </tr>
                 </thead>
                 <tbody id="table-body"></tbody>
@@ -37,68 +43,77 @@
         const fileInput = document.getElementById('file-input');
         const tableBody = document.getElementById('table-body');
         const tableContainer = document.getElementById('table-container');
+        const copyBtn = document.getElementById('copy-btn');
+        let discordOutput = "";
 
-        // Click to upload fallback
-        dropZone.addEventListener('click', () => fileInput.click());
+        dropZone.onclick = () => fileInput.click();
+        fileInput.onchange = (e) => handleFile(e.target.files[0]);
 
-        fileInput.addEventListener('change', (e) => handleFile(e.target.files[0]));
-
-        // Drag and Drop Logic
-        dropZone.addEventListener('dragover', (e) => {
-            e.preventDefault();
-            dropZone.classList.add('drag-over');
-        });
-
-        dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
-
-        dropZone.addEventListener('drop', (e) => {
+        dropZone.ondragover = (e) => { e.preventDefault(); dropZone.classList.add('drag-over'); };
+        dropZone.ondragleave = () => dropZone.classList.remove('drag-over');
+        dropZone.ondrop = (e) => {
             e.preventDefault();
             dropZone.classList.remove('drag-over');
             handleFile(e.dataTransfer.files[0]);
-        });
+        };
 
         function handleFile(file) {
-            if (!file || !file.name.endsWith('.csv')) {
-                alert("Please drop a valid CSV file.");
-                return;
-            }
-
+            if (!file) return;
             const reader = new FileReader();
-            reader.onload = function(e) {
-                const text = e.target.result;
-                parseCSV(text);
-            };
+            reader.onload = (e) => parseDutyCSV(e.target.result);
             reader.readAsText(file);
         }
 
-        function parseCSV(text) {
-            const rows = text.split('\n').map(row => row.split(','));
-            const headers = rows[0].map(h => h.trim().toLowerCase());
-            
-            // Find which columns are the ID and the Hours
-            const idIdx = headers.indexOf('discord id');
-            const hourIdx = headers.indexOf('hours');
+        function cleanName(name) {
+            return name.replace(/~.*?~/g, '').replace(/"/g, '').trim();
+        }
 
-            if (idIdx === -1 || hourIdx === -1) {
-                alert("Error: CSV must have 'Discord ID' and 'Hours' headers.");
-                return;
-            }
-
-            tableBody.innerHTML = ''; // Clear old data
+        function parseDutyCSV(text) {
+            const lines = text.split('\n');
+            const headers = lines[0].split(',').map(h => h.trim().toLowerCase());
             
-            for (let i = 1; i < rows.length; i++) {
-                if (rows[i].length < 2) continue; // Skip empty rows
+            const nameIdx = headers.indexOf('name');
+            const idIdx = headers.indexOf('id');
+            const timeIdx = headers.indexOf('time');
+
+            tableBody.innerHTML = '';
+            let count = 0;
+            let totalMins = 0;
+            discordOutput = "**Weekly Staff Hours:**\n";
+
+            for (let i = 1; i < lines.length; i++) {
+                if (!lines[i].trim()) continue;
+                const columns = lines[i].split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
                 
+                const rawName = columns[nameIdx] || "Unknown";
+                const discordId = columns[idIdx] ? columns[idIdx].replace(/"/g, '') : "N/A";
+                const minutes = parseInt(columns[timeIdx]) || 0;
+                const hours = (minutes / 60).toFixed(1);
+                const name = cleanName(rawName);
+
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
-                    <td>${rows[i][idIdx]}</td>
-                    <td class="hours-val">${rows[i][hourIdx]} hrs</td>
+                    <td class="staff-name">${name}</td>
+                    <td class="discord-id">${discordId}</td>
+                    <td class="hours-val">${hours} hrs</td>
                 `;
                 tableBody.appendChild(tr);
+                
+                discordOutput += `• **${name}**: ${hours} hours\n`;
+                count++;
+                totalMins += minutes;
             }
             
+            document.getElementById('staff-count').innerText = `Total Staff: ${count}`;
+            document.getElementById('total-hours-sum').innerText = `Total Hours: ${(totalMins/60).toFixed(1)}`;
             tableContainer.style.display = 'block';
         }
+
+        copyBtn.onclick = () => {
+            navigator.clipboard.writeText(discordOutput);
+            copyBtn.innerText = "Copied! ✅";
+            setTimeout(() => { copyBtn.innerText = "Copy for Discord 📋"; }, 2000);
+        };
     </script>
 </body>
 </html>
