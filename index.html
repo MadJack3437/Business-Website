@@ -20,11 +20,18 @@
         </div>
 
         <div id="table-container" style="display: none;">
+            <div class="search-container">
+                <input type="text" id="search-input" placeholder="Search by name or Discord ID...">
+            </div>
+
             <div class="stats-bar">
-                <span id="staff-count">Total Staff: 0</span> | 
-                <span id="total-hours-sum">Total Hours: 0</span>
+                <div class="totals">
+                    <span id="staff-count">Total Staff: 0</span> | 
+                    <span id="total-hours-sum">Total Hours: 0</span>
+                </div>
                 <button id="copy-btn">Copy for Discord 📋</button>
             </div>
+
             <table id="hours-table">
                 <thead>
                     <tr>
@@ -44,6 +51,7 @@
         const tableBody = document.getElementById('table-body');
         const tableContainer = document.getElementById('table-container');
         const copyBtn = document.getElementById('copy-btn');
+        const searchInput = document.getElementById('search-input');
         let discordOutput = "";
 
         dropZone.onclick = () => fileInput.click();
@@ -108,6 +116,17 @@
             document.getElementById('total-hours-sum').innerText = `Total Hours: ${(totalMins/60).toFixed(1)}`;
             tableContainer.style.display = 'block';
         }
+
+        // Search Functionality
+        searchInput.onkeyup = function() {
+            const filter = searchInput.value.toLowerCase();
+            const rows = tableBody.getElementsByTagName('tr');
+
+            for (let i = 0; i < rows.length; i++) {
+                const text = rows[i].textContent.toLowerCase();
+                rows[i].style.display = text.includes(filter) ? "" : "none";
+            }
+        };
 
         copyBtn.onclick = () => {
             navigator.clipboard.writeText(discordOutput);
