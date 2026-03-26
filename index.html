@@ -4,47 +4,94 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Weekly Business Logs</title>
-    <link rel="stylesheet" href="style.css">
+    <style>
+        body {
+            font-family: 'Inter', -apple-system, sans-serif;
+            background-color: #020617;
+            color: #f1f5f9;
+            margin: 0; padding: 20px;
+            display: flex; flex-direction: column; align-items: center;
+        }
+        header { text-align: center; margin-bottom: 20px; }
+        .logo {
+            width: 120px; height: auto; border-radius: 50%;
+            border: 2px solid #38bdf8; box-shadow: 0 0 20px rgba(56, 189, 248, 0.4);
+        }
+        h1 { color: #38bdf8; margin: 10px 0; text-transform: uppercase; letter-spacing: 2px; }
+        
+        /* Member of the Week Styling */
+        #motw-container {
+            width: 100%; max-width: 800px;
+            background: linear-gradient(45deg, #1e293b, #0f172a);
+            border: 2px solid #f59e0b; /* Gold border */
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 25px;
+            text-align: center;
+            display: none; /* Hidden until CSV is dropped */
+            box-shadow: 0 0 15px rgba(245, 158, 11, 0.2);
+        }
+        .motw-title { color: #f59e0b; font-weight: bold; font-size: 1.2rem; text-transform: uppercase; margin-bottom: 5px; }
+        #motw-name { font-size: 1.8rem; color: #fff; font-weight: 800; text-shadow: 0 0 10px rgba(255,255,255,0.3); }
+
+        #drop-zone {
+            width: 100%; max-width: 600px; padding: 60px 20px;
+            border: 2px dashed #1e293b; border-radius: 20px;
+            background: #0f172a; cursor: pointer; text-align: center; transition: 0.3s;
+        }
+        #drop-zone:hover { border-color: #38bdf8; background: #1e293b; }
+
+        .stats-bar {
+            width: 100%; max-width: 800px; display: flex;
+            justify-content: space-between; align-items: center;
+            background: #1e293b; padding: 15px; border-radius: 12px; margin-bottom: 15px;
+            border: 1px solid #334155;
+        }
+        .totals { font-weight: bold; color: #38bdf8; }
+        #copy-btn { background: #38bdf8; color: #020617; border: none; padding: 10px 18px; border-radius: 8px; font-weight: bold; cursor: pointer; }
+        #reset-btn { background: #334155; color: white; border: none; padding: 10px 18px; border-radius: 8px; cursor: pointer; margin-left: 5px;}
+        
+        table { width: 100%; max-width: 800px; border-collapse: collapse; background: #0f172a; border-radius: 12px; overflow: hidden; }
+        th { background: #1e293b; color: #38bdf8; padding: 15px; text-align: left; font-size: 0.8rem; }
+        td { padding: 15px; border-bottom: 1px solid #1e293b; }
+        .hours-val { color: #4ade80; font-weight: bold; text-align: right; }
+        #search-input { width: 100%; max-width: 800px; padding: 14px; border-radius: 12px; border: 1px solid #1e293b; background: #1e293b; color: white; margin-bottom: 15px; outline: none; }
+        #search-input:focus { border-color: #38bdf8; }
+    </style>
 </head>
 <body>
 
     <header>
-        <img src="https://i.postimg.cc/dtHffs97/75cb50d9389d910e9781b944fceed68b.webp" alt="Business Logo" class="logo">
+        <img src="https://i.postimg.cc/dtHffs97/75cb50d9389d910e9781b944fceed68b.webp" alt="Logo" class="logo">
         <h1>Weekly Business Logs</h1>
-        <p>Drop your <b>CSV</b> file here to calculate staff hours.</p>
     </header>
 
-    <main>
+    <div id="motw-container">
+        <div class="motw-title">🏆 Business Member of the Week 🏆</div>
+        <div id="motw-name">Processing...</div>
+        <div id="motw-hours" style="color: #f59e0b;"></div>
+    </div>
+
+    <main style="width: 100%; display: flex; flex-direction: column; align-items: center;">
         <div id="drop-zone">
-            <div class="upload-icon">📁</div>
-            <p>Drag & Drop Duty Log CSV here <br><span>or click to browse</span></p>
+            <p>Drag & Drop CSV here or click to browse</p>
             <input type="file" id="file-input" accept=".csv" hidden>
         </div>
 
-        <div id="table-container" style="display: none;">
-            <div class="search-container">
-                <input type="text" id="search-input" placeholder="Search by name or Discord ID...">
-            </div>
-
+        <div id="table-container" style="display: none; width: 100%; max-width: 800px;">
+            <input type="text" id="search-input" placeholder="Search members...">
             <div class="stats-bar">
                 <div class="totals">
-                    <span id="staff-count">Staff: 0</span> | 
-                    <span id="total-hours-sum">Hours: 0</span>
+                    <span id="staff-count">Business Members: 0</span> | 
+                    <span id="total-hours-sum">Total Hours: 0</span>
                 </div>
                 <div class="actions">
                     <button id="copy-btn">Copy for Discord 📋</button>
                     <button id="reset-btn">Clear 🗑️</button>
                 </div>
             </div>
-
-            <table id="hours-table">
-                <thead>
-                    <tr>
-                        <th>Staff Name</th>
-                        <th>Discord ID</th>
-                        <th style="text-align: right;">Total Hours</th>
-                    </tr>
-                </thead>
+            <table>
+                <thead><tr><th>Name</th><th>ID</th><th style="text-align:right">Hours</th></tr></thead>
                 <tbody id="table-body"></tbody>
             </table>
         </div>
@@ -55,103 +102,66 @@
         const fileInput = document.getElementById('file-input');
         const tableBody = document.getElementById('table-body');
         const tableContainer = document.getElementById('table-container');
-        const copyBtn = document.getElementById('copy-btn');
-        const resetBtn = document.getElementById('reset-btn');
-        const searchInput = document.getElementById('search-input');
-        let discordOutput = "";
+        const motwContainer = document.getElementById('motw-container');
 
         dropZone.onclick = () => fileInput.click();
         fileInput.onchange = (e) => handleFile(e.target.files[0]);
 
-        dropZone.ondragover = (e) => { e.preventDefault(); dropZone.classList.add('drag-over'); };
-        dropZone.ondragleave = () => dropZone.classList.remove('drag-over');
-        dropZone.ondrop = (e) => {
-            e.preventDefault();
-            dropZone.classList.remove('drag-over');
-            handleFile(e.dataTransfer.files[0]);
-        };
-
         function handleFile(file) {
-            if (!file) return;
+            if(!file) return;
             const reader = new FileReader();
-            reader.onload = (e) => parseDutyCSV(e.target.result);
+            reader.onload = (e) => {
+                const lines = e.target.result.split('\n');
+                tableBody.innerHTML = '';
+                let totalMins = 0;
+                let topMember = { name: "", hours: 0 };
+                let discordText = "**Weekly Business Logs:**\n";
+
+                for (let i = 1; i < lines.length; i++) {
+                    if (!lines[i].trim()) continue;
+                    const cols = lines[i].split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
+                    const name = (cols[0] || "Unknown").replace(/~.*?~/g, '').replace(/"/g, '');
+                    const mins = parseInt(cols[3]) || 0;
+                    const hours = parseFloat((mins / 60).toFixed(1));
+                    
+                    if (hours > topMember.hours) {
+                        topMember = { name: name, hours: hours };
+                    }
+
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `<td>${name}</td><td style="color:#64748b">${cols[1]}</td><td class="hours-val">${hours} hrs</td>`;
+                    tableBody.appendChild(tr);
+                    discordText += `• **${name}**: ${hours} hours\n`;
+                    totalMins += mins;
+                }
+
+                // Update Stats
+                document.getElementById('staff-count').innerText = `Business Members: ${lines.length - 1}`;
+                document.getElementById('total-hours-sum').innerText = `Total: ${(totalMins/60).toFixed(1)} hrs`;
+                
+                // Update Member of the Week
+                document.getElementById('motw-name').innerText = topMember.name;
+                document.getElementById('motw-hours').innerText = `With an incredible ${topMember.hours} hours logged!`;
+                
+                tableContainer.style.display = 'block';
+                motwContainer.style.display = 'block';
+                dropZone.style.display = 'none';
+
+                document.getElementById('copy-btn').onclick = () => {
+                    navigator.clipboard.writeText(discordText);
+                    alert("Copied to clipboard!");
+                };
+            };
             reader.readAsText(file);
         }
 
-        function cleanName(name) {
-            return name.replace(/~.*?~/g, '').replace(/"/g, '').trim();
-        }
-
-        function csvToArray(text) {
-            const result = [];
-            let row = [];
-            let q = false;
-            let buffer = "";
-            for (let i = 0; i < text.length; i++) {
-                const char = text[i];
-                if (char === '"') q = !q;
-                else if (char === ',' && !q) { row.push(buffer); buffer = ""; }
-                else if (char === '\n' && !q) { row.push(buffer); result.push(row); row = []; buffer = ""; }
-                else { buffer += char; }
-            }
-            if (buffer) row.push(buffer);
-            if (row.length > 0) result.push(row);
-            return result;
-        }
-
-        function parseDutyCSV(text) {
-            const data = csvToArray(text);
-            const headers = data[0].map(h => h.trim().toLowerCase());
-            const nameIdx = headers.indexOf('name');
-            const idIdx = headers.indexOf('id');
-            const timeIdx = headers.indexOf('time');
-
-            tableBody.innerHTML = '';
-            let count = 0;
-            let totalMins = 0;
-            discordOutput = "**Weekly Business Logs:**\n";
-
-            for (let i = 1; i < data.length; i++) {
-                const columns = data[i];
-                if (columns.length < 3) continue;
-                const name = cleanName(columns[nameIdx] || "Unknown");
-                const discordId = (columns[idIdx] || "N/A").trim();
-                const minutes = parseInt(columns[timeIdx]) || 0;
-                const hours = (minutes / 60).toFixed(1);
-
-                const tr = document.createElement('tr');
-                tr.innerHTML = `<td>${name}</td><td style="color:#94a3b8">${discordId}</td><td class="hours-val">${hours} hrs</td>`;
-                tableBody.appendChild(tr);
-                
-                discordOutput += `• **${name}**: ${hours} hours\n`;
-                count++;
-                totalMins += minutes;
-            }
-            
-            document.getElementById('staff-count').innerText = `Staff: ${count}`;
-            document.getElementById('total-hours-sum').innerText = `Hours: ${(totalMins/60).toFixed(1)}`;
-            tableContainer.style.display = 'block';
-            dropZone.style.display = 'none';
-        }
-
-        searchInput.onkeyup = function() {
-            const filter = searchInput.value.toLowerCase();
+        document.getElementById('reset-btn').onclick = () => location.reload();
+        document.getElementById('search-input').onkeyup = function() {
+            const filter = this.value.toLowerCase();
             const rows = tableBody.getElementsByTagName('tr');
-            for (let i = 0; i < rows.length; i++) {
-                rows[i].style.display = rows[i].textContent.toLowerCase().includes(filter) ? "" : "none";
+            for (let row of rows) {
+                row.style.display = row.innerText.toLowerCase().includes(filter) ? "" : "none";
             }
-        };
-
-        resetBtn.onclick = () => {
-            tableContainer.style.display = 'none';
-            dropZone.style.display = 'block';
-            fileInput.value = "";
-        };
-
-        copyBtn.onclick = () => {
-            navigator.clipboard.writeText(discordOutput);
-            copyBtn.innerText = "Copied! ✅";
-            setTimeout(() => { copyBtn.innerText = "Copy for Discord 📋"; }, 2000);
         };
     </script>
 </body>
