@@ -1,65 +1,138 @@
-<div class="stats-bar">
-    <div class="totals">
-        <span id="staff-count">Members: 0</span> | 
-        <span id="total-hours-sum">Total: 0 hrs</span>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weekly Business Logs</title>
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #020617; color: #f1f5f9; margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center; min-height: 100vh; }
+        header { text-align: center; margin-bottom: 20px; }
+        .logo { width: 120px; border-radius: 50%; border: 2px solid #38bdf8; box-shadow: 0 0 20px rgba(56, 189, 248, 0.4); }
+        h1 { color: #38bdf8; text-transform: uppercase; letter-spacing: 2px; font-size: 1.5rem; }
+        
+        #drop-zone { width: 100%; max-width: 600px; padding: 60px 20px; border: 2px dashed #1e293b; border-radius: 20px; background: #0f172a; cursor: pointer; text-align: center; transition: 0.3s; margin-bottom: 20px; }
+        #drop-zone:hover { border-color: #38bdf8; background: #1e293b; }
+
+        .stats-bar { width: 100%; max-width: 800px; display: flex; justify-content: space-between; align-items: center; background: #1e293b; padding: 15px; border-radius: 12px; margin-bottom: 15px; }
+        .totals { font-weight: bold; color: #38bdf8; }
+        
+        .actions button { padding: 10px 15px; border-radius: 8px; font-weight: bold; cursor: pointer; border: none; margin-left: 5px; }
+        #copy-btn { background: #38bdf8; color: #020617; }
+        #save-btn { background: #22c55e; color: white; display: none; } /* Hidden until file upload */
+        #reset-btn { background: #ef4444; color: white; }
+
+        table { width: 100%; max-width: 800px; border-collapse: collapse; background: #0f172a; border-radius: 12px; overflow: hidden; margin-bottom: 50px; }
+        th { background: #1e293b; color: #38bdf8; padding: 15px; text-align: left; }
+        td { padding: 12px; border-bottom: 1px solid #1e293b; }
+        
+        footer { margin-top: auto; padding: 30px; width: 100%; text-align: center; }
+        .mgmt-btn { padding: 12px 30px; background: #0f172a; color: #a855f7; border: 2px solid #a855f7; border-radius: 10px; font-weight: 800; cursor: pointer; text-decoration: none; }
+    </style>
+</head>
+<body>
+
+    <header>
+        <img src="https://i.postimg.cc/dtHffs97/75cb50d9389d910e9781b944fceed68b.webp" alt="Logo" class="logo">
+        <h1>Weekly Business Logs</h1>
+    </header>
+
+    <div id="drop-zone">
+        <p>Drag & Drop CSV here or click to browse</p>
+        <input type="file" id="file-input" accept=".csv" hidden>
     </div>
-    <div class="actions" id="button-actions">
-        <button id="copy-btn">Copy for Discord 📋</button>
-        <button id="reset-btn">Clear 🗑️</button>
+
+    <div id="table-container" style="display: none; width: 100%; max-width: 800px;">
+        <div class="stats-bar">
+            <div class="totals">
+                <span id="staff-count">Members: 0</span> | <span id="total-hours-sum">Total: 0 hrs</span>
+            </div>
+            <div class="actions">
+                <button id="copy-btn">Copy Discord 📋</button>
+                <button id="save-btn">Save to Portal 💾</button>
+                <button id="reset-btn" onclick="location.reload()">Clear 🗑️</button>
+            </div>
+        </div>
+        <table>
+            <thead><tr><th>Name</th><th>ID</th><th>Hours</th></tr></thead>
+            <tbody id="table-body"></tbody>
+        </table>
     </div>
-</div>
 
-<script>
-    // ... keep your existing cleanData and other helper functions ...
+    <footer>
+        <a href="#" onclick="checkAdmin()" class="mgmt-btn">🔓 OPEN MANAGEMENT PORTAL</a>
+    </footer>
 
-    function handleFile(file) {
-        if(!file) return;
-        const reader = new FileReader();
-        reader.onload = (e) => {
-            const text = e.target.result;
-            const rows = text.split(/\r?\n/);
-            if (rows.length < 2) return;
+    <script>
+        const dropZone = document.getElementById('drop-zone');
+        const fileInput = document.getElementById('file-input');
+        const saveBtn = document.getElementById('save-btn');
+        let currentFileData = "";
+        let currentFileName = "";
 
-            // ... your existing table processing logic ...
-            // Make sure your processing logic is here to fill the table
+        dropZone.onclick = () => fileInput.click();
+        fileInput.onchange = (e) => handleFile(e.target.files[0]);
 
-            // --- NEW: Inject the Save Button ---
-            const actionArea = document.getElementById('button-actions');
-            
-            // Remove old save button if it exists to avoid duplicates
-            const oldSave = document.getElementById('save-to-portal');
-            if (oldSave) oldSave.remove();
-
-            const saveBtn = document.createElement('button');
-            saveBtn.id = 'save-to-portal';
-            saveBtn.innerText = '💾 Save to Portal';
-            // Styling it green so it stands out
-            saveBtn.style.cssText = "background: #22c55e; color: white; border: none; padding: 10px 18px; border-radius: 8px; font-weight: bold; cursor: pointer; margin: 0 5px;";
-            
-            saveBtn.onclick = () => {
-                const logDate = new Date().toLocaleString();
-                const savedLogs = JSON.parse(localStorage.getItem('businessLogHistory')) || [];
+        function handleFile(file) {
+            if(!file) return;
+            currentFileName = file.name;
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                currentFileData = e.target.result;
+                const rows = currentFileData.split(/\r?\n/);
+                const tableBody = document.getElementById('table-body');
+                tableBody.innerHTML = '';
                 
-                savedLogs.push({
-                    date: logDate,
-                    fileName: file.name,
-                    rawData: text
-                });
-                
-                localStorage.setItem('businessLogHistory', JSON.stringify(savedLogs));
-                
-                saveBtn.innerText = '✅ Saved!';
-                saveBtn.style.background = '#64748b'; // Change to grey after saving
-                saveBtn.disabled = true;
+                let totalMins = 0;
+                let count = 0;
+                let discordText = "**Weekly Business Logs:**\n";
+
+                for (let i = 1; i < rows.length; i++) {
+                    const cols = rows[i].split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
+                    if (cols.length < 3) continue;
+                    
+                    const name = cols[0].replace(/["~]/g, '').trim();
+                    const id = cols[1].replace(/"/g, '').trim();
+                    const mins = parseInt(cols[2].replace(/"/g, '')) || 0;
+                    const hrs = (mins / 60).toFixed(1);
+
+                    tableBody.innerHTML += `<tr><td>${name}</td><td>${id}</td><td style="color:#4ade80">${hrs} hrs</td></tr>`;
+                    discordText += `• **${name}**: ${hrs} hrs\n`;
+                    totalMins += mins;
+                    count++;
+                }
+
+                document.getElementById('staff-count').innerText = `Members: ${count}`;
+                document.getElementById('total-hours-sum').innerText = `Total: ${(totalMins/60).toFixed(1)} hrs`;
+                document.getElementById('table-container').style.display = 'block';
+                document.getElementById('drop-zone').style.display = 'none';
+                saveBtn.style.display = 'inline-block';
+
+                document.getElementById('copy-btn').onclick = () => {
+                    navigator.clipboard.writeText(discordText);
+                    alert("Copied!");
+                };
             };
+            reader.readAsText(file);
+        }
 
-            // Insert the save button before the "Clear" button
-            actionArea.insertBefore(saveBtn, document.getElementById('reset-btn'));
-            
-            // Show the table container
-            document.getElementById('table-container').style.display = 'block';
-            document.getElementById('drop-zone').style.display = 'none';
+        saveBtn.onclick = () => {
+            const logs = JSON.parse(localStorage.getItem('businessLogHistory')) || [];
+            logs.push({
+                date: new Date().toLocaleString(),
+                fileName: currentFileName,
+                rawData: currentFileData
+            });
+            localStorage.setItem('businessLogHistory', JSON.stringify(logs));
+            saveBtn.innerText = "✅ Saved!";
+            saveBtn.style.background = "#64748b";
+            saveBtn.disabled = true;
         };
-        reader.readAsText(file);
-    }
-</script>
+
+        function checkAdmin() {
+            const user = prompt("User:");
+            const pass = prompt("Pass:");
+            if(user === "ADMIN" && pass === "ADMIN") window.location.href = "management.html";
+        }
+    </script>
+</body>
+</html>
