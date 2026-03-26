@@ -61,17 +61,28 @@
             transition: 0.2s;
         }
 
+        /* Business Management - Blue & Orange 2-Tone */
+        .mgmt-header {
+            background: linear-gradient(90deg, #0ea5e9 0%, #f97316 100%);
+            color: #ffffff;
+            border: 1px solid #ffffff;
+            text-shadow: 1px 1px 3px rgba(0,0,0,0.3);
+        }
+
+        /* Business Coordination - Gold Theme */
         .bc-header {
             background: linear-gradient(90deg, #1e293b, #78350f);
             color: #fbbf24;
             border: 1px solid #fbbf24;
+            margin-top: 10px;
         }
 
+        /* Business Members - Slate Theme */
         .member-header {
             background: #1e293b;
             color: #94a3b8;
             border: 1px solid #334155;
-            margin-top: 15px;
+            margin-top: 10px;
         }
 
         .header-titles {
@@ -133,10 +144,22 @@
                     <span id="staff-count">Coord: 0</span> | <span id="total-hours-sum">0 hrs</span>
                 </div>
                 <div class="actions">
-                    <button id="copy-btn">Copy BC Logs 📋</button>
+                    <button id="copy-btn">Copy Logs 📋</button>
                     <button id="save-btn">Save 💾</button>
                     <button id="reset-btn" onclick="location.reload()">Clear 🗑️</button>
                 </div>
+            </div>
+
+            <div class="section-header mgmt-header" onclick="this.classList.toggle('collapsed')">
+                <div class="header-titles">
+                    <span>Business Management</span>
+                    <span>Discord ID</span>
+                    <span>Duty Time</span>
+                </div>
+                <span class="arrow-icon">▼</span>
+            </div>
+            <div class="slide-wrapper">
+                <table><tbody id="mgmt-table-body"></tbody></table>
             </div>
 
             <div class="section-header bc-header" onclick="this.classList.toggle('collapsed')">
@@ -193,14 +216,16 @@
 
         function processCSV(text) {
             const rows = text.trim().split(/\r?\n/).filter(row => row.trim() !== '');
+            const mgmtTable = document.getElementById('mgmt-table-body');
             const bcTable = document.getElementById('bc-table-body');
             const memTable = document.getElementById('member-table-body');
             
+            mgmtTable.innerHTML = '';
             bcTable.innerHTML = '';
             memTable.innerHTML = '';
 
             let bcMins = 0, bcCount = 0, maxMins = -1, topName = "";
-            let discordText = "**Business Coordination Logs:**\n";
+            let discordText = "**Weekly Business Logs:**\n";
 
             for (let i = 1; i < rows.length; i++) {
                 const cols = rows[i].split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
@@ -214,17 +239,24 @@
 
                 const rowHtml = `<tr><td>${name}</td><td>${id}</td><td style="color:#4ade80; font-weight:bold;">${hrs} hrs</td></tr>`;
 
-                if (callsign.includes("BC") || name.toUpperCase().includes("BC")) {
+                // Sorting Logic
+                if (callsign.includes("BUSMAN") || name.toUpperCase().includes("BUSMAN")) {
+                    mgmtTable.innerHTML += rowHtml;
+                    discordText += `• [MGMT] **${name}**: ${hrs} hrs\n`;
+                } 
+                else if (callsign.includes("BC") || name.toUpperCase().includes("BC")) {
                     bcTable.innerHTML += rowHtml;
-                    discordText += `• **${name}**: ${hrs} hrs\n`;
+                    discordText += `• [BC] **${name}**: ${hrs} hrs\n`;
                     bcMins += mins;
                     bcCount++;
                     if (mins > maxMins) {
                         maxMins = mins;
                         topName = `${name} — ${hrs} hrs`;
                     }
-                } else {
+                } 
+                else {
                     memTable.innerHTML += rowHtml;
+                    discordText += `• **${name}**: ${hrs} hrs\n`;
                 }
             }
 
@@ -238,7 +270,7 @@
 
             document.getElementById('copy-btn').onclick = () => {
                 navigator.clipboard.writeText(discordText);
-                alert("BC Coordination Logs Copied!");
+                alert("All Logs Copied!");
             };
         }
 
