@@ -6,7 +6,7 @@
     <title>Weekly Business Logs</title>
     <style>
         body {
-            font-family: 'Inter', -apple-system, sans-serif;
+            font-family: 'Inter', sans-serif;
             background-color: #020617;
             color: #f1f5f9;
             margin: 0; padding: 20px;
@@ -17,22 +17,24 @@
             width: 120px; height: auto; border-radius: 50%;
             border: 2px solid #38bdf8; box-shadow: 0 0 20px rgba(56, 189, 248, 0.4);
         }
-        h1 { color: #38bdf8; margin: 10px 0; text-transform: uppercase; letter-spacing: 2px; }
+        h1 { color: #38bdf8; margin: 10px 0; text-transform: uppercase; letter-spacing: 2px; font-size: 1.5rem; }
         
-        /* Member of the Week Styling */
+        /* Member of the Week - Gold/Neon Theme */
         #motw-container {
             width: 100%; max-width: 800px;
-            background: linear-gradient(45deg, #1e293b, #0f172a);
-            border: 2px solid #f59e0b; /* Gold border */
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            border: 2px solid #f59e0b;
             border-radius: 15px;
-            padding: 20px;
+            padding: 25px;
             margin-bottom: 25px;
             text-align: center;
-            display: none; /* Hidden until CSV is dropped */
-            box-shadow: 0 0 15px rgba(245, 158, 11, 0.2);
+            display: none;
+            box-shadow: 0 0 20px rgba(245, 158, 11, 0.2);
         }
-        .motw-title { color: #f59e0b; font-weight: bold; font-size: 1.2rem; text-transform: uppercase; margin-bottom: 5px; }
-        #motw-name { font-size: 1.8rem; color: #fff; font-weight: 800; text-shadow: 0 0 10px rgba(255,255,255,0.3); }
+        .motw-title { color: #f59e0b; font-weight: bold; font-size: 1.1rem; text-transform: uppercase; margin-bottom: 10px; letter-spacing: 1px; }
+        #motw-name { font-size: 2rem; color: #fff; font-weight: 800; margin-bottom: 5px; }
+        #motw-details { font-size: 1.1rem; color: #cbd5e1; font-family: monospace; }
+        .highlight-gold { color: #f59e0b; font-weight: bold; }
 
         #drop-zone {
             width: 100%; max-width: 600px; padding: 60px 20px;
@@ -45,18 +47,16 @@
             width: 100%; max-width: 800px; display: flex;
             justify-content: space-between; align-items: center;
             background: #1e293b; padding: 15px; border-radius: 12px; margin-bottom: 15px;
-            border: 1px solid #334155;
         }
         .totals { font-weight: bold; color: #38bdf8; }
         #copy-btn { background: #38bdf8; color: #020617; border: none; padding: 10px 18px; border-radius: 8px; font-weight: bold; cursor: pointer; }
         #reset-btn { background: #334155; color: white; border: none; padding: 10px 18px; border-radius: 8px; cursor: pointer; margin-left: 5px;}
         
         table { width: 100%; max-width: 800px; border-collapse: collapse; background: #0f172a; border-radius: 12px; overflow: hidden; }
-        th { background: #1e293b; color: #38bdf8; padding: 15px; text-align: left; font-size: 0.8rem; }
+        th { background: #1e293b; color: #38bdf8; padding: 15px; text-align: left; }
         td { padding: 15px; border-bottom: 1px solid #1e293b; }
         .hours-val { color: #4ade80; font-weight: bold; text-align: right; }
         #search-input { width: 100%; max-width: 800px; padding: 14px; border-radius: 12px; border: 1px solid #1e293b; background: #1e293b; color: white; margin-bottom: 15px; outline: none; }
-        #search-input:focus { border-color: #38bdf8; }
     </style>
 </head>
 <body>
@@ -68,8 +68,8 @@
 
     <div id="motw-container">
         <div class="motw-title">🏆 Business Member of the Week 🏆</div>
-        <div id="motw-name">Processing...</div>
-        <div id="motw-hours" style="color: #f59e0b;"></div>
+        <div id="motw-name">Name</div>
+        <div id="motw-details">ID: <span id="motw-id" class="highlight-gold">---</span> | Hours: <span id="motw-hrs-val" class="highlight-gold">0</span></div>
     </div>
 
     <main style="width: 100%; display: flex; flex-direction: column; align-items: center;">
@@ -114,22 +114,23 @@
                 const lines = e.target.result.split('\n');
                 tableBody.innerHTML = '';
                 let totalMins = 0;
-                let topMember = { name: "", hours: 0 };
+                let topMember = { name: "", id: "", hours: 0 };
                 let discordText = "**Weekly Business Logs:**\n";
 
                 for (let i = 1; i < lines.length; i++) {
                     if (!lines[i].trim()) continue;
                     const cols = lines[i].split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
                     const name = (cols[0] || "Unknown").replace(/~.*?~/g, '').replace(/"/g, '');
+                    const discordId = (cols[1] || "N/A").replace(/"/g, '');
                     const mins = parseInt(cols[3]) || 0;
                     const hours = parseFloat((mins / 60).toFixed(1));
                     
                     if (hours > topMember.hours) {
-                        topMember = { name: name, hours: hours };
+                        topMember = { name: name, id: discordId, hours: hours };
                     }
 
                     const tr = document.createElement('tr');
-                    tr.innerHTML = `<td>${name}</td><td style="color:#64748b">${cols[1]}</td><td class="hours-val">${hours} hrs</td>`;
+                    tr.innerHTML = `<td>${name}</td><td style="color:#64748b">${discordId}</td><td class="hours-val">${hours} hrs</td>`;
                     tableBody.appendChild(tr);
                     discordText += `• **${name}**: ${hours} hours\n`;
                     totalMins += mins;
@@ -139,9 +140,10 @@
                 document.getElementById('staff-count').innerText = `Business Members: ${lines.length - 1}`;
                 document.getElementById('total-hours-sum').innerText = `Total: ${(totalMins/60).toFixed(1)} hrs`;
                 
-                // Update Member of the Week
+                // Update MOTW with ID and Hours
                 document.getElementById('motw-name').innerText = topMember.name;
-                document.getElementById('motw-hours').innerText = `With an incredible ${topMember.hours} hours logged!`;
+                document.getElementById('motw-id').innerText = topMember.id;
+                document.getElementById('motw-hrs-val').innerText = topMember.hours + " hrs";
                 
                 tableContainer.style.display = 'block';
                 motwContainer.style.display = 'block';
@@ -149,7 +151,7 @@
 
                 document.getElementById('copy-btn').onclick = () => {
                     navigator.clipboard.writeText(discordText);
-                    alert("Copied to clipboard!");
+                    alert("Copied logs to clipboard!");
                 };
             };
             reader.readAsText(file);
