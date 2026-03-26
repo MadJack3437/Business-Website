@@ -27,7 +27,6 @@
             border-radius: 20px; background: #0f172a; cursor: pointer; text-align: center; margin: 20px 0; 
         }
 
-        /* Top Performer Banner - Purple/Gold Theme */
         #top-member-banner {
             width: 100%; background: linear-gradient(90deg, #1e293b, #3b0764);
             border: 1px solid #a855f7; border-radius: 12px; padding: 15px;
@@ -46,7 +45,6 @@
         #save-btn { background: #22c55e; color: white; display: none; }
         #reset-btn { background: #ef4444; color: white; }
 
-        /* Accordion Headers */
         .section-header {
             padding: 14px 20px;
             display: flex;
@@ -63,15 +61,13 @@
             transition: 0.2s;
         }
 
-        /* Business Coord - Gold Theme */
         .bc-header {
             background: linear-gradient(90deg, #1e293b, #78350f);
             color: #fbbf24;
             border: 1px solid #fbbf24;
         }
 
-        /* Business Members - Blue/Slate Theme */
-        .general-header {
+        .member-header {
             background: #1e293b;
             color: #94a3b8;
             border: 1px solid #334155;
@@ -145,9 +141,9 @@
 
             <div class="section-header bc-header" onclick="this.classList.toggle('collapsed')">
                 <div class="header-titles">
-                    <span>Business Coord</span>
+                    <span>Business Coordination</span>
                     <span>Discord ID</span>
-                    <span>Time</span>
+                    <span>Duty Time</span>
                 </div>
                 <span class="arrow-icon">▼</span>
             </div>
@@ -155,16 +151,16 @@
                 <table><tbody id="bc-table-body"></tbody></table>
             </div>
 
-            <div class="section-header general-header collapsed" onclick="this.classList.toggle('collapsed')">
+            <div class="section-header member-header collapsed" onclick="this.classList.toggle('collapsed')">
                 <div class="header-titles">
-                    <span>General Staff</span>
+                    <span>Business Members</span>
                     <span>Discord ID</span>
-                    <span>Time</span>
+                    <span>Duty Time</span>
                 </div>
                 <span class="arrow-icon">▼</span>
             </div>
             <div class="slide-wrapper">
-                <table><tbody id="general-table-body"></tbody></table>
+                <table><tbody id="member-table-body"></tbody></table>
             </div>
         </div>
     </div>
@@ -198,10 +194,10 @@
         function processCSV(text) {
             const rows = text.trim().split(/\r?\n/).filter(row => row.trim() !== '');
             const bcTable = document.getElementById('bc-table-body');
-            const genTable = document.getElementById('general-table-body');
+            const memTable = document.getElementById('member-table-body');
             
             bcTable.innerHTML = '';
-            genTable.innerHTML = '';
+            memTable.innerHTML = '';
 
             let bcMins = 0, bcCount = 0, maxMins = -1, topName = "";
             let discordText = "**Business Coordination Logs:**\n";
@@ -218,7 +214,6 @@
 
                 const rowHtml = `<tr><td>${name}</td><td>${id}</td><td style="color:#4ade80; font-weight:bold;">${hrs} hrs</td></tr>`;
 
-                // LOGIC: If callsign or name contains "BC", they go to the top dropdown
                 if (callsign.includes("BC") || name.toUpperCase().includes("BC")) {
                     bcTable.innerHTML += rowHtml;
                     discordText += `• **${name}**: ${hrs} hrs\n`;
@@ -229,7 +224,7 @@
                         topName = `${name} — ${hrs} hrs`;
                     }
                 } else {
-                    genTable.innerHTML += rowHtml;
+                    memTable.innerHTML += rowHtml;
                 }
             }
 
