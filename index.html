@@ -63,9 +63,6 @@
     <header>
         <img src="https://i.postimg.cc/dtHffs97/75cb50d9389d910e9781b944fceed68b.webp" alt="Logo" class="logo">
         <h1>Weekly Business Logs</h1>
-        <div style="margin: 15px 0;">
-            <a href="staff.html" style="background: #1e293b; color: #38bdf8; padding: 8px 15px; text-decoration: none; border-radius: 5px; border: 1px solid #38bdf8; font-size: 0.9rem;">View Staff Info</a>
-        </div>
     </header>
 
     <div id="motw-container">
@@ -111,7 +108,6 @@
 
         function cleanData(str) {
             if(!str) return "";
-            // Remove FiveM color codes and all extra quotes
             return str.replace(/~.*?~/g, '').replace(/"/g, '').trim();
         }
 
@@ -123,7 +119,6 @@
                 const rows = text.split(/\r?\n/);
                 if (rows.length < 2) return;
 
-                // Dynamically find where "id" and "time" are
                 const headers = rows[0].split(',').map(h => h.trim().toLowerCase());
                 const nameIdx = headers.indexOf('name');
                 const idIdx = headers.indexOf('id');
@@ -139,13 +134,11 @@
                     const line = rows[i].trim();
                     if (!line) continue;
                     
-                    // This regex correctly splits even when names have quotes and commas inside them
                     const cols = line.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
                     
                     const name = cleanData(cols[nameIdx]);
                     const discordId = cleanData(cols[idIdx]);
                     
-                    // Use the dynamic index to find the time (minutes)
                     const mins = parseInt(cleanData(cols[timeIdx])) || 0;
                     const hours = parseFloat((mins / 60).toFixed(1));
 
