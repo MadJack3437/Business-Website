@@ -1,44 +1,74 @@
 body {
-    font-family: 'Inter', sans-serif;
-    background-color: #f4f7f6;
-    text-align: center;
-    padding: 50px;
+    font-family: 'Segoe UI', sans-serif;
+    background-color: #0f172a;
+    color: #f8fafc;
+    margin: 0;
+    padding: 20px;
 }
+
+header { text-align: center; margin-bottom: 30px; }
 
 #drop-zone {
-    max-width: 500px;
-    margin: 20px auto;
+    max-width: 600px;
+    margin: 0 auto 30px auto;
     padding: 40px;
-    border: 3px dashed #3498db;
-    border-radius: 15px;
-    background: white;
+    border: 3px dashed #38bdf8;
+    border-radius: 20px;
+    background: #1e293b;
     cursor: pointer;
-    transition: 0.3s;
+    text-align: center;
 }
 
-#drop-zone.drag-over {
-    background: #e1f5fe;
-    border-color: #2980b9;
+#drop-zone.drag-over { background: #334155; border-color: #7dd3fc; }
+
+.search-container {
+    max-width: 800px;
+    margin: 0 auto 15px auto;
+}
+
+#search-input {
+    width: 100%;
+    padding: 12px;
+    border-radius: 8px;
+    border: 1px solid #334155;
+    background: #1e293b;
+    color: white;
+    font-size: 1rem;
+}
+
+.stats-bar {
+    max-width: 800px;
+    margin: 0 auto 10px auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #1e293b;
+    padding: 15px;
+    border-radius: 10px;
+    border: 1px solid #334155;
+}
+
+#copy-btn {
+    background-color: #38bdf8;
+    color: #0f172a;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 5px;
+    font-weight: bold;
+    cursor: pointer;
 }
 
 table {
     width: 100%;
-    max-width: 600px;
-    margin: 30px auto;
+    max-width: 800px;
+    margin: 0 auto;
     border-collapse: collapse;
-    background: white;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    background: #1e293b;
+    border-radius: 10px;
+    overflow: hidden;
 }
 
-th, td {
-    padding: 15px;
-    border-bottom: 1px solid #ddd;
-    text-align: left;
-}
-
-th { background-color: #3498db; color: white; }
-
-.hours-val {
-    font-weight: bold;
-    color: #27ae60;
-}
+th { background: #334155; color: #38bdf8; padding: 15px; text-align: left; }
+td { padding: 15px; border-bottom: 1px solid #334155; }
+.hours-val { color: #4ade80; font-weight: bold; text-align: right; }
+tr:hover { background: #1e293b; filter: brightness(1.2); }
