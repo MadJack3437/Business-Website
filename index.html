@@ -1,224 +1,68 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Weekly Business Logs</title>
-    <style>
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: #020617;
-            color: #f1f5f9;
-            margin: 0; padding: 20px;
-            display: flex; flex-direction: column; align-items: center;
-            min-height: 100vh; /* Keeps the page full height */
-        }
-        header { text-align: center; margin-bottom: 20px; }
-        .logo {
-            width: 120px; height: auto; border-radius: 50%;
-            border: 2px solid #38bdf8; box-shadow: 0 0 20px rgba(56, 189, 248, 0.4);
-        }
-        h1 { color: #38bdf8; margin: 10px 0; text-transform: uppercase; letter-spacing: 2px; font-size: 1.5rem; }
-        
-        #motw-container {
-            width: 100%; max-width: 800px;
-            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
-            border: 2px solid #f59e0b;
-            border-radius: 15px;
-            padding: 25px; margin-bottom: 25px;
-            text-align: center; display: none;
-            box-shadow: 0 0 20px rgba(245, 158, 11, 0.2);
-        }
-        .motw-title { color: #f59e0b; font-weight: bold; font-size: 1.1rem; text-transform: uppercase; margin-bottom: 10px; }
-        #motw-name { font-size: 2.2rem; color: #fff; font-weight: 800; margin-bottom: 5px; }
-        #motw-details { font-size: 1.1rem; color: #cbd5e1; font-family: monospace; }
-        .highlight-gold { color: #f59e0b; font-weight: bold; }
+// REPLACE the handleFile function in your index.html with this:
+function handleFile(file) {
+    if(!file) return;
+    const reader = new FileReader();
+    reader.onload = (e) => {
+        const text = e.target.result;
+        const rows = text.split(/\r?\n/);
+        if (rows.length < 2) return;
 
-        #drop-zone {
-            width: 100%; max-width: 600px; padding: 60px 20px;
-            border: 2px dashed #1e293b; border-radius: 20px;
-            background: #0f172a; cursor: pointer; text-align: center; transition: 0.3s;
-        }
-        #drop-zone:hover { border-color: #38bdf8; background: #1e293b; }
+        // --- NEW SAVING LOGIC ---
+        const logDate = new Date().toLocaleString();
+        const savedLogs = JSON.parse(localStorage.getItem('businessLogHistory')) || [];
+        savedLogs.push({
+            date: logDate,
+            fileName: file.name,
+            rawData: text
+        });
+        localStorage.setItem('businessLogHistory', JSON.stringify(savedLogs));
+        // ------------------------
 
-        .stats-bar {
-            width: 100%; max-width: 800px; display: flex;
-            justify-content: space-between; align-items: center;
-            background: #1e293b; padding: 15px; border-radius: 12px; margin-bottom: 15px;
-        }
-        .totals { font-weight: bold; color: #38bdf8; }
-        #copy-btn { background: #38bdf8; color: #020617; border: none; padding: 10px 18px; border-radius: 8px; font-weight: bold; cursor: pointer; }
-        #reset-btn { background: #334155; color: white; border: none; padding: 10px 18px; border-radius: 8px; cursor: pointer; margin-left: 5px;}
-        
-        table { width: 100%; max-width: 800px; border-collapse: collapse; background: #0f172a; border-radius: 12px; overflow: hidden; margin-bottom: 50px; }
-        th { background: #1e293b; color: #38bdf8; padding: 15px; text-align: left; }
-        td { padding: 15px; border-bottom: 1px solid #1e293b; }
-        .hours-val { color: #4ade80; font-weight: bold; text-align: right; }
-        #search-input { width: 100%; max-width: 800px; padding: 14px; border-radius: 12px; border: 1px solid #1e293b; background: #1e293b; color: white; margin-bottom: 15px; outline: none; }
+        const headers = rows[0].split(',').map(h => h.trim().toLowerCase());
+        const nameIdx = headers.indexOf('name');
+        const idIdx = headers.indexOf('id');
+        const timeIdx = headers.indexOf('time');
 
-        /* FIXED ADMIN BUTTON AT THE BOTTOM */
-        footer { 
-            margin-top: auto; 
-            padding: 30px 0; 
-            width: 100%; 
-            text-align: center; 
-            border-top: 1px solid #1e293b;
-        }
-        .mgmt-btn {
-            display: inline-block;
-            padding: 12px 30px;
-            background: #0f172a;
-            color: #a855f7;
-            cursor: pointer;
-            border: 2px solid #a855f7;
-            border-radius: 10px;
-            font-size: 0.9rem;
-            font-weight: 800;
-            transition: 0.3s;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            box-shadow: 0 0 15px rgba(168, 85, 247, 0.2);
-        }
-        .mgmt-btn:hover {
-            background: #a855f7;
-            color: #fff;
-            box-shadow: 0 0 25px rgba(168, 85, 247, 0.5);
-            transform: translateY(-2px);
-        }
-    </style>
-</head>
-<body>
+        tableBody.innerHTML = '';
+        let totalMins = 0;
+        let topMember = { name: "N/A", id: "N/A", hours: -1 };
+        let discordText = `**Weekly Business Logs (${new Date().toLocaleDateString()}):**\n`;
+        let memberCount = 0;
 
-    <header>
-        <img src="https://i.postimg.cc/dtHffs97/75cb50d9389d910e9781b944fceed68b.webp" alt="Logo" class="logo">
-        <h1>Weekly Business Logs</h1>
-    </header>
+        for (let i = 1; i < rows.length; i++) {
+            const line = rows[i].trim();
+            if (!line) continue;
+            const cols = line.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
+            const name = cleanData(cols[nameIdx]);
+            const discordId = cleanData(cols[idIdx]);
+            const mins = parseInt(cleanData(cols[timeIdx])) || 0;
+            const hours = parseFloat((mins / 60).toFixed(1));
 
-    <div id="motw-container">
-        <div class="motw-title">🏆 Business Member of the Week 🏆</div>
-        <div id="motw-name">---</div>
-        <div id="motw-details">ID: <span id="motw-id" class="highlight-gold">---</span> | Hours: <span id="motw-hrs-val" class="highlight-gold">0</span></div>
-    </div>
-
-    <main style="width: 100%; display: flex; flex-direction: column; align-items: center;">
-        <div id="drop-zone">
-            <p>Drag & Drop CSV here or click to browse</p>
-            <input type="file" id="file-input" accept=".csv" hidden>
-        </div>
-
-        <div id="table-container" style="display: none; width: 100%; max-width: 800px;">
-            <input type="text" id="search-input" placeholder="Search members...">
-            <div class="stats-bar">
-                <div class="totals">
-                    <span id="staff-count">Business Members: 0</span> | 
-                    <span id="total-hours-sum">Total Hours: 0</span>
-                </div>
-                <div class="actions">
-                    <button id="copy-btn">Copy for Discord 📋</button>
-                    <button id="reset-btn">Clear 🗑️</button>
-                </div>
-            </div>
-            <table>
-                <thead><tr><th>Name</th><th>ID</th><th style="text-align:right">Hours</th></tr></thead>
-                <tbody id="table-body"></tbody>
-            </table>
-        </div>
-    </main>
-
-    <footer>
-        <div onclick="checkAdmin()" class="mgmt-btn">🔓 Open Management Portal</div>
-    </footer>
-
-    <script>
-        function checkAdmin() {
-            const user = prompt("Enter Username:");
-            const pass = prompt("Enter Password:");
-            if (user === "ADMIN" && pass === "ADMIN") {
-                window.location.href = "management.html";
-            } else {
-                alert("Incorrect login details.");
+            if (hours > topMember.hours) {
+                topMember = { name: name, id: discordId, hours: hours };
             }
+
+            const tr = document.createElement('tr');
+            tr.innerHTML = `<td>${name}</td><td style="color:#64748b">${discordId}</td><td class="hours-val">${hours} hrs</td>`;
+            tableBody.appendChild(tr);
+            discordText += `• **${name}**: ${hours} hours\n`;
+            totalMins += mins;
+            memberCount++;
         }
 
-        const dropZone = document.getElementById('drop-zone');
-        const fileInput = document.getElementById('file-input');
-        const tableBody = document.getElementById('table-body');
-        const tableContainer = document.getElementById('table-container');
-        const motwContainer = document.getElementById('motw-container');
+        document.getElementById('staff-count').innerText = `Business Members: ${memberCount}`;
+        document.getElementById('total-hours-sum').innerText = `Total Hours: ${(totalMins/60).toFixed(1)}`;
+        document.getElementById('motw-name').innerText = topMember.name;
+        document.getElementById('motw-id').innerText = topMember.id;
+        document.getElementById('motw-hrs-val').innerText = topMember.hours + " hrs";
+        tableContainer.style.display = 'block';
+        motwContainer.style.display = 'block';
+        dropZone.style.display = 'none';
 
-        dropZone.onclick = () => fileInput.click();
-        fileInput.onchange = (e) => handleFile(e.target.files[0]);
-
-        function cleanData(str) {
-            if(!str) return "";
-            return str.replace(/~.*?~/g, '').replace(/"/g, '').trim();
-        }
-
-        function handleFile(file) {
-            if(!file) return;
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                const text = e.target.result;
-                const rows = text.split(/\r?\n/);
-                if (rows.length < 2) return;
-
-                const headers = rows[0].split(',').map(h => h.trim().toLowerCase());
-                const nameIdx = headers.indexOf('name');
-                const idIdx = headers.indexOf('id');
-                const timeIdx = headers.indexOf('time');
-
-                tableBody.innerHTML = '';
-                let totalMins = 0;
-                let topMember = { name: "N/A", id: "N/A", hours: -1 };
-                let discordText = "**Weekly Business Logs:**\n";
-                let memberCount = 0;
-
-                for (let i = 1; i < rows.length; i++) {
-                    const line = rows[i].trim();
-                    if (!line) continue;
-                    const cols = line.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
-                    const name = cleanData(cols[nameIdx]);
-                    const discordId = cleanData(cols[idIdx]);
-                    const mins = parseInt(cleanData(cols[timeIdx])) || 0;
-                    const hours = parseFloat((mins / 60).toFixed(1));
-
-                    if (hours > topMember.hours) {
-                        topMember = { name: name, id: discordId, hours: hours };
-                    }
-
-                    const tr = document.createElement('tr');
-                    tr.innerHTML = `<td>${name}</td><td style="color:#64748b">${discordId}</td><td class="hours-val">${hours} hrs</td>`;
-                    tableBody.appendChild(tr);
-                    discordText += `• **${name}**: ${hours} hours\n`;
-                    totalMins += mins;
-                    memberCount++;
-                }
-
-                document.getElementById('staff-count').innerText = `Business Members: ${memberCount}`;
-                document.getElementById('total-hours-sum').innerText = `Total Hours: ${(totalMins/60).toFixed(1)}`;
-                document.getElementById('motw-name').innerText = topMember.name;
-                document.getElementById('motw-id').innerText = topMember.id;
-                document.getElementById('motw-hrs-val').innerText = topMember.hours + " hrs";
-                tableContainer.style.display = 'block';
-                motwContainer.style.display = 'block';
-                dropZone.style.display = 'none';
-
-                document.getElementById('copy-btn').onclick = () => {
-                    navigator.clipboard.writeText(discordText);
-                    alert("Copied!");
-                };
-            };
-            reader.readAsText(file);
-        }
-
-        document.getElementById('reset-btn').onclick = () => location.reload();
-        document.getElementById('search-input').onkeyup = function() {
-            const filter = this.value.toLowerCase();
-            const rows = tableBody.getElementsByTagName('tr');
-            for (let row of rows) {
-                row.style.display = row.innerText.toLowerCase().includes(filter) ? "" : "none";
-            }
+        document.getElementById('copy-btn').onclick = () => {
+            navigator.clipboard.writeText(discordText);
+            alert("Copied for Discord!");
         };
-    </script>
-</body>
-</html>
+    };
+    reader.readAsText(file);
+}
