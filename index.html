@@ -3,30 +3,102 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My GitHub Website</title>
+    <title>Business Hour Tracker</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-    <nav>
-        <h1>My Digital Space</h1>
-        <ul>
-            <li><a href="#">Home</a></li>
-            <li><a href="#">Projects</a></li>
-            <li><a href="#">Contact</a></li>
-        </ul>
-    </nav>
+    <header>
+        <h1>Staff Hour Logs</h1>
+        <p>Drag and drop your CSV file below to process hours.</p>
+    </header>
 
     <main>
-        <section class="hero">
-            <h2>Hello, I'm [Your Name]</h2>
-            <p>Welcome to my GitHub Pages site. I build things with code.</p>
-        </section>
+        <div id="drop-zone">
+            <p>Drop CSV here or click to upload</p>
+            <input type="file" id="file-input" accept=".csv" hidden>
+        </div>
+
+        <div id="table-container" style="display: none;">
+            <table id="hours-table">
+                <thead>
+                    <tr>
+                        <th>Discord ID</th>
+                        <th>Hours Logged</th>
+                    </tr>
+                </thead>
+                <tbody id="table-body"></tbody>
+            </table>
+        </div>
     </main>
 
-    <footer>
-        <p>&copy; 2026 Built with GitHub Pages</p>
-    </footer>
+    <script>
+        const dropZone = document.getElementById('drop-zone');
+        const fileInput = document.getElementById('file-input');
+        const tableBody = document.getElementById('table-body');
+        const tableContainer = document.getElementById('table-container');
 
+        // Click to upload fallback
+        dropZone.addEventListener('click', () => fileInput.click());
+
+        fileInput.addEventListener('change', (e) => handleFile(e.target.files[0]));
+
+        // Drag and Drop Logic
+        dropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropZone.classList.add('drag-over');
+        });
+
+        dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
+
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('drag-over');
+            handleFile(e.dataTransfer.files[0]);
+        });
+
+        function handleFile(file) {
+            if (!file || !file.name.endsWith('.csv')) {
+                alert("Please drop a valid CSV file.");
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const text = e.target.result;
+                parseCSV(text);
+            };
+            reader.readAsText(file);
+        }
+
+        function parseCSV(text) {
+            const rows = text.split('\n').map(row => row.split(','));
+            const headers = rows[0].map(h => h.trim().toLowerCase());
+            
+            // Find which columns are the ID and the Hours
+            const idIdx = headers.indexOf('discord id');
+            const hourIdx = headers.indexOf('hours');
+
+            if (idIdx === -1 || hourIdx === -1) {
+                alert("Error: CSV must have 'Discord ID' and 'Hours' headers.");
+                return;
+            }
+
+            tableBody.innerHTML = ''; // Clear old data
+            
+            for (let i = 1; i < rows.length; i++) {
+                if (rows[i].length < 2) continue; // Skip empty rows
+                
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${rows[i][idIdx]}</td>
+                    <td class="hours-val">${rows[i][hourIdx]} hrs</td>
+                `;
+                tableBody.appendChild(tr);
+            }
+            
+            tableContainer.style.display = 'block';
+        }
+    </script>
 </body>
 </html>
