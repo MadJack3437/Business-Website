@@ -2,101 +2,167 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Management Portal</title>
     <style>
-        body { font-family: 'Inter', sans-serif; background-color: #020617; color: #f1f5f9; margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center; }
-        header { text-align: center; margin-bottom: 30px; }
-        .logo { width: 100px; height: auto; border-radius: 50%; border: 2px solid #a855f7; }
-        h1 { color: #a855f7; text-transform: uppercase; margin: 10px 0; }
-        .nav-link { color: #38bdf8; text-decoration: none; font-weight: bold; margin-bottom: 20px; }
-        
-        .management-grid { display: grid; grid-template-columns: 1fr; gap: 20px; width: 100%; max-width: 800px; }
-        .card { background: #0f172a; border: 1px solid #1e293b; padding: 20px; border-radius: 12px; }
-        .card h2 { color: #38bdf8; border-bottom: 1px solid #1e293b; padding-bottom: 10px; margin-top: 0; }
-        
-        .log-entry { 
-            background: #1e293b; padding: 15px; border-radius: 8px; margin-bottom: 15px; border-left: 4px solid #a855f7;
+        /* Global Reset & Scrollbar Removal */
+        html, body { 
+            margin: 0; padding: 0; width: 100vw; height: 100vh; overflow: hidden; 
+            background-color: #020617; font-family: 'Inter', sans-serif; color: #f1f5f9;
+            display: flex; flex-direction: column; align-items: center;
         }
-        .log-header-date { color: #a855f7; font-weight: bold; font-size: 1.1rem; display: block; margin-bottom: 5px; }
-        .log-filename { color: #94a3b8; font-size: 0.8rem; margin-bottom: 10px; display: block; }
-        
-        .btn-group { display: flex; gap: 10px; }
-        button { flex: 1; padding: 8px; border-radius: 5px; border: none; font-weight: bold; cursor: pointer; }
-        .prev-btn { background: #38bdf8; color: #020617; }
-        .del-btn { background: #ef4444; color: white; }
 
-        /* Preview Modal */
-        #modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); justify-content: center; align-items: center; }
-        .modal-box { background: #0f172a; padding: 20px; border-radius: 12px; width: 90%; max-width: 600px; max-height: 80vh; overflow-y: auto; border: 1px solid #38bdf8; }
-        table { width: 100%; border-collapse: collapse; color: white; }
-        th, td { padding: 8px; border-bottom: 1px solid #1e293b; text-align: left; }
+        header { text-align: center; padding: 20px 0 10px 0; flex-shrink: 0; }
+        .logo { width: 100px; border-radius: 50%; border: 2px solid #a855f7; box-shadow: 0 0 15px rgba(168, 85, 247, 0.3); }
+        h1 { color: #a855f7; text-transform: uppercase; letter-spacing: 2px; font-size: 1.2rem; margin: 10px 0; }
+        
+        .nav-link { color: #38bdf8; text-decoration: none; font-size: 0.85rem; font-weight: bold; margin-bottom: 10px; display: inline-block; }
+        .nav-link:hover { text-decoration: underline; }
+
+        /* Main Scrollable Content Area */
+        .content-area {
+            flex: 1; width: 100%; max-width: 900px; display: flex; flex-direction: column;
+            align-items: center; overflow-y: auto; padding: 10px; box-sizing: border-box;
+            scrollbar-width: thin; scrollbar-color: #1e293b #020617;
+        }
+
+        /* Top Performer Spotlight (Historical) */
+        #top-member-banner {
+            width: 100%; background: linear-gradient(90deg, #1e293b, #3b0764);
+            border: 1px solid #a855f7; border-radius: 12px; padding: 15px;
+            margin-bottom: 15px; text-align: center; display: none; box-sizing: border-box;
+        }
+
+        .stats-bar { 
+            width: 100%; display: flex; justify-content: space-between; align-items: center; 
+            background: #1e293b; padding: 15px 20px; border-radius: 12px; margin-bottom: 15px; box-sizing: border-box; 
+        }
+        
+        .totals { font-weight: bold; color: #a855f7; font-size: 0.95rem; }
+
+        .log-card {
+            width: 100%; background: #0f172a; border: 1px solid #1e293b; 
+            border-radius: 12px; padding: 15px; margin-bottom: 10px; box-sizing: border-box;
+        }
+        .log-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+        .log-date { font-weight: bold; color: #38bdf8; }
+        
+        .btn-red { background: #ef4444; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 0.75rem; }
+
+        /* Fixed Footer */
+        footer { 
+            width: 100%; padding: 15px 20px 25px 20px; background: #020617; 
+            display: flex; justify-content: space-between; align-items: center;
+            flex-shrink: 0; border-top: 1px solid #1e293b; box-sizing: border-box;
+        }
+        .back-btn { padding: 12px 30px; background: #0f172a; color: #38bdf8; border: 2px solid #38bdf8; border-radius: 10px; font-weight: 800; cursor: pointer; text-decoration: none; font-size: 0.85rem; order: 2; }
+        
+        .powered-by {
+            font-size: 0.65rem; color: #475569; text-transform: uppercase; 
+            letter-spacing: 1px; font-weight: 600; order: 1;
+        }
     </style>
 </head>
 <body>
 
-    <div id="modal"><div class="modal-box"><button onclick="closeModal()" style="background:#ef4444; color:white; margin-bottom:10px;">CLOSE</button><div id="modal-body"></div></div></div>
-
     <header>
         <img src="https://i.postimg.cc/dtHffs97/75cb50d9389d910e9781b944fceed68b.webp" alt="Logo" class="logo">
         <h1>Management Portal</h1>
+        <a href="index.html" class="nav-link">← Return to Staff Logs</a>
     </header>
 
-    <a href="index.html" class="nav-link">← Return to Staff Logs</a>
-
-    <div class="management-grid">
-        <div class="card">
-            <h2>📁 Saved Log History</h2>
-            <div id="log-history-list"></div>
+    <div class="content-area">
+        <div id="top-member-banner">
+            <h3 style="margin: 0; color: #e9d5ff; font-size: 0.8rem; text-transform: uppercase;">🏆 Current Top Performer</h3>
+            <p id="top-member-info" style="margin: 5px 0 0 0; font-weight: bold; color: #fdf4ff; font-size: 1.1rem;">No data saved yet</p>
         </div>
+
+        <div class="stats-bar">
+            <div class="totals">
+                <span id="saved-logs-count">Saved Reports: 0</span> | <span id="grand-total-hours">Lifetime: 0 hrs</span>
+            </div>
+            <button class="btn-red" onclick="clearHistory()">Wipe All History ⚠️</button>
+        </div>
+
+        <div id="logs-container" style="width: 100%;">
+            </div>
     </div>
 
+    <footer>
+        <span class="powered-by">Powered by SACRP Business Management</span>
+        <a href="index.html" class="back-btn">RETURN TO LOGS</a>
+    </footer>
+
     <script>
-        window.onload = displayHistory;
-
-        function displayHistory() {
-            const list = document.getElementById('log-history-list');
+        function loadHistory() {
             const logs = JSON.parse(localStorage.getItem('businessLogHistory')) || [];
-            
-            if (logs.length === 0) {
-                list.innerHTML = "<p style='text-align:center; opacity:0.5;'>No logs saved. Go to the main page and click 'Save to Portal' after uploading a CSV.</p>";
-                return;
-            }
+            const container = document.getElementById('logs-container');
+            const logCountDisp = document.getElementById('saved-logs-count');
+            const totalHrsDisp = document.getElementById('grand-total-hours');
+            const topBanner = document.getElementById('top-member-banner');
+            const topInfo = document.getElementById('top-member-info');
 
-            list.innerHTML = "";
-            logs.slice().reverse().forEach((log, index) => {
-                const actualIndex = logs.length - 1 - index;
-                const div = document.createElement('div');
-                div.className = 'log-entry';
-                div.innerHTML = `
-                    <span class="log-header-date">📅 ${log.date}</span>
-                    <span class="log-filename">Source: ${log.fileName}</span>
-                    <div class="btn-group">
-                        <button class="prev-btn" onclick="previewLog(${actualIndex})">View Data</button>
-                        <button class="del-btn" onclick="deleteLog(${actualIndex})">Delete</button>
+            container.innerHTML = logs.length === 0 ? '<p style="text-align:center; color:#64748b;">No saved reports found.</p>' : '';
+            
+            let grandTotalMins = 0;
+            let overallMaxMins = -1;
+            let overallTopMember = "";
+
+            logs.reverse().forEach((log, index) => {
+                const rows = log.rawData.trim().split(/\r?\n/);
+                let reportMins = 0;
+                let reportMaxMins = -1;
+                let reportTopMember = "";
+
+                for (let i = 1; i < rows.length; i++) {
+                    const cols = rows[i].split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
+                    if (cols.length < 4) continue;
+
+                    const name = cols[0].replace(/["~]/g, '').trim();
+                    const mins = parseInt(cols[3].replace(/"/g, '')) || 0;
+                    
+                    reportMins += mins;
+                    grandTotalMins += mins;
+
+                    if (mins > reportMaxMins) {
+                        reportMaxMins = mins;
+                        reportTopMember = `${name} (${(mins/60).toFixed(1)} hrs)`;
+                    }
+                }
+
+                // Use the very first (most recent) log's top member for the banner
+                if (index === 0 && reportTopMember) {
+                    topBanner.style.display = 'block';
+                    topInfo.innerText = reportTopMember;
+                }
+
+                const card = document.createElement('div');
+                card.className = 'log-card';
+                card.innerHTML = `
+                    <div class="log-header">
+                        <span class="log-date">${log.date}</span>
+                        <span style="color:#4ade80; font-weight:bold;">${(reportMins/60).toFixed(1)} Total Hrs</span>
+                    </div>
+                    <div style="font-size:0.8rem; color:#94a3b8;">
+                        File: ${log.fileName} <br>
+                        Weekly MVP: ${reportTopMember}
                     </div>
                 `;
-                list.appendChild(div);
+                container.appendChild(card);
             });
+
+            logCountDisp.innerText = `Saved Reports: ${logs.length}`;
+            totalHrsDisp.innerText = `Lifetime: ${(grandTotalMins/60).toFixed(1)} hrs`;
         }
 
-        function previewLog(idx) {
-            const logs = JSON.parse(localStorage.getItem('businessLogHistory')) || [];
-            const log = logs[idx];
-            const rows = log.rawData.split('\n');
-            let html = "<table><tr><th>Name</th><th>ID</th><th>Mins</th></tr>";
-            for(let i=1; i<rows.length; i++) {
-                if(!rows[i].trim()) continue;
-                const cols = rows[i].split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
-                html += `<tr><td>${cols[0].replace(/"/g,'')}</td><td>${cols[1]}</td><td>${cols[2]}</td></tr>`;
+        function clearHistory() {
+            if (confirm("Are you sure you want to delete ALL saved logs? This cannot be undone.")) {
+                localStorage.removeItem('businessLogHistory');
+                location.reload();
             }
-            html += "</table>";
-            document.getElementById('modal-body').innerHTML = html;
-            document.getElementById('modal').style.display = 'flex';
         }
 
-        function closeModal() { document.getElementById('modal').style.display = 'none'; }
-        function deleteLog(idx) { if(confirm("Delete this log?")) { let logs = JSON.parse(localStorage.getItem('businessLogHistory')); logs.splice(idx, 1); localStorage.setItem('businessLogHistory', JSON.stringify(logs)); displayHistory(); } }
+        window.onload = loadHistory;
     </script>
 </body>
 </html>
