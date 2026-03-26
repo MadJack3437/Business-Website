@@ -13,13 +13,11 @@
             display: flex; flex-direction: column; align-items: center;
         }
         header { text-align: center; margin-bottom: 30px; }
-        .logo { width: 100px; height: auto; border-radius: 50%; border: 2px solid #a855f7; }
-        h1 { color: #a855f7; margin: 10px 0; text-transform: uppercase; }
+        .logo { width: 100px; height: auto; border-radius: 50%; border: 2px solid #a855f7; box-shadow: 0 0 20px rgba(168, 85, 247, 0.3); }
+        h1 { color: #a855f7; margin: 10px 0; text-transform: uppercase; letter-spacing: 2px; }
         
-        .nav-link {
-            color: #64748b; text-decoration: none; font-size: 0.9rem; margin-bottom: 20px; transition: 0.3s;
-        }
-        .nav-link:hover { color: #a855f7; }
+        .nav-link { color: #38bdf8; text-decoration: none; font-size: 0.9rem; margin-bottom: 20px; transition: 0.3s; font-weight: bold; }
+        .nav-link:hover { text-decoration: underline; }
 
         .management-grid {
             display: grid;
@@ -37,22 +35,27 @@
             box-shadow: 0 4px 15px rgba(0,0,0,0.3);
         }
 
-        .card h2 { color: #f1f5f9; font-size: 1.2rem; border-bottom: 1px solid #1e293b; padding-bottom: 10px; }
+        .card h2 { color: #f1f5f9; font-size: 1.2rem; border-bottom: 1px solid #1e293b; padding-bottom: 10px; margin-top: 0; }
         .card p { color: #94a3b8; font-size: 0.9rem; line-height: 1.5; }
         
+        /* Strike Tracker Styles */
+        .strike-input-group { display: flex; flex-direction: column; gap: 10px; margin-top: 15px; }
+        input, textarea { 
+            background: #1e293b; border: 1px solid #334155; 
+            color: white; padding: 8px; border-radius: 6px; outline: none;
+        }
+        .strike-list { margin-top: 15px; max-height: 200px; overflow-y: auto; font-size: 0.85rem; }
+        .strike-item { 
+            background: #020617; padding: 10px; border-left: 3px solid #ef4444; 
+            margin-bottom: 8px; border-radius: 4px; position: relative;
+        }
+        .delete-strike { position: absolute; right: 10px; top: 10px; color: #ef4444; cursor: pointer; font-weight: bold; }
+
         .action-btn {
-            display: block;
-            width: 100%;
-            padding: 10px;
-            margin-top: 15px;
-            background: #1e293b;
-            color: #a855f7;
-            text-align: center;
-            text-decoration: none;
-            border-radius: 6px;
-            border: 1px solid #a855f7;
-            font-weight: bold;
-            transition: 0.3s;
+            display: block; width: 100%; padding: 10px; margin-top: 15px;
+            background: #1e293b; color: #a855f7; text-align: center;
+            text-decoration: none; border-radius: 6px; border: 1px solid #a855f7;
+            font-weight: bold; cursor: pointer; transition: 0.3s;
         }
         .action-btn:hover { background: #a855f7; color: #fff; }
     </style>
@@ -70,13 +73,18 @@
         <div class="card">
             <h2>Performance Tracking</h2>
             <p>Review historical data and track member growth over the last 30 days.</p>
-            <a href="#" class="action-btn">View Reports</a>
+            <button class="action-btn" onclick="alert('Report generator coming soon...')">View Reports</button>
         </div>
 
-        <div class="card">
-            <h2>Internal Notes</h2>
-            <p>Keep track of strikes, warnings, and internal management discussions.</p>
-            <a href="#" class="action-btn">Open Records</a>
+        <div class="card" style="border-color: #ef4444;">
+            <h2 style="color: #ef4444;">Staff Strike Tracker</h2>
+            <div class="strike-input-group">
+                <input type="text" id="strike-name" placeholder="Staff Name">
+                <textarea id="strike-reason" placeholder="Reason for strike..."></textarea>
+                <button class="action-btn" style="border-color: #ef4444; color: #ef4444;" onclick="addStrike()">Issue Strike ⚠️</button>
+            </div>
+            <div class="strike-list" id="strike-list">
+                </div>
         </div>
 
         <div class="card" style="border-color: #4ade80;">
@@ -85,6 +93,52 @@
             <a href="#" class="action-btn" style="border-color: #4ade80; color: #4ade80;">Review List</a>
         </div>
     </div>
+
+    <script>
+        // Load strikes on page load
+        window.onload = displayStrikes;
+
+        function addStrike() {
+            const name = document.getElementById('strike-name').value;
+            const reason = document.getElementById('strike-reason').value;
+            const date = new Date().toLocaleDateString();
+
+            if (!name || !reason) return alert("Please fill in both fields.");
+
+            const strikes = JSON.parse(localStorage.getItem('staffStrikes')) || [];
+            strikes.push({ name, reason, date, id: Date.now() });
+            localStorage.setItem('staffStrikes', JSON.stringify(strikes));
+
+            document.getElementById('strike-name').value = '';
+            document.getElementById('strike-reason').value = '';
+            displayStrikes();
+        }
+
+        function displayStrikes() {
+            const list = document.getElementById('strike-list');
+            const strikes = JSON.parse(localStorage.getItem('staffStrikes')) || [];
+            
+            list.innerHTML = strikes.length === 0 ? '<p style="text-align:center; opacity:0.5;">No strikes on record.</p>' : '';
+            
+            strikes.reverse().forEach(s => {
+                const div = document.createElement('div');
+                div.className = 'strike-item';
+                div.innerHTML = `
+                    <span class="delete-strike" onclick="deleteStrike(${s.id})">×</span>
+                    <strong style="color:#ef4444">${s.name}</strong> <small style="opacity:0.6">(${s.date})</small><br>
+                    <span style="display:block; margin-top:5px;">${s.reason}</span>
+                `;
+                list.appendChild(div);
+            });
+        }
+
+        function deleteStrike(id) {
+            let strikes = JSON.parse(localStorage.getItem('staffStrikes')) || [];
+            strikes = strikes.filter(s => s.id !== id);
+            localStorage.setItem('staffStrikes', JSON.stringify(strikes));
+            displayStrikes();
+        }
+    </script>
 
 </body>
 </html>
