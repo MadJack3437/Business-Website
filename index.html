@@ -5,28 +5,32 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Weekly Business Logs</title>
     <style>
+        /* Ensuring styles are robust and won't "disappear" on navigation */
         body { font-family: 'Inter', sans-serif; background-color: #020617; color: #f1f5f9; margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center; min-height: 100vh; }
         header { text-align: center; margin-bottom: 20px; }
         .logo { width: 120px; border-radius: 50%; border: 2px solid #38bdf8; box-shadow: 0 0 20px rgba(56, 189, 248, 0.4); }
-        h1 { color: #38bdf8; text-transform: uppercase; letter-spacing: 2px; font-size: 1.5rem; }
+        h1 { color: #38bdf8; text-transform: uppercase; letter-spacing: 2px; font-size: 1.5rem; margin: 10px 0; }
         
-        #drop-zone { width: 100%; max-width: 600px; padding: 60px 20px; border: 2px dashed #1e293b; border-radius: 20px; background: #0f172a; cursor: pointer; text-align: center; transition: 0.3s; margin-bottom: 20px; }
+        #drop-zone { width: 100%; max-width: 600px; padding: 60px 20px; border: 2px dashed #1e293b; border-radius: 20px; background: #0f172a; cursor: pointer; text-align: center; transition: 0.3s; margin-bottom: 20px; box-sizing: border-box; }
         #drop-zone:hover { border-color: #38bdf8; background: #1e293b; }
 
-        .stats-bar { width: 100%; max-width: 800px; display: flex; justify-content: space-between; align-items: center; background: #1e293b; padding: 15px; border-radius: 12px; margin-bottom: 15px; }
+        .stats-bar { width: 100%; max-width: 800px; display: flex; justify-content: space-between; align-items: center; background: #1e293b; padding: 15px; border-radius: 12px; margin-bottom: 15px; box-sizing: border-box; }
         .totals { font-weight: bold; color: #38bdf8; }
         
-        .actions button { padding: 10px 15px; border-radius: 8px; font-weight: bold; cursor: pointer; border: none; margin-left: 5px; }
+        .actions { display: flex; gap: 8px; }
+        .actions button { padding: 10px 15px; border-radius: 8px; font-weight: bold; cursor: pointer; border: none; font-size: 0.85rem; }
         #copy-btn { background: #38bdf8; color: #020617; }
-        #save-btn { background: #22c55e; color: white; display: none; } /* Hidden until file upload */
+        #save-btn { background: #22c55e; color: white; display: none; }
         #reset-btn { background: #ef4444; color: white; }
 
-        table { width: 100%; max-width: 800px; border-collapse: collapse; background: #0f172a; border-radius: 12px; overflow: hidden; margin-bottom: 50px; }
+        .table-wrapper { width: 100%; max-width: 800px; overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; background: #0f172a; border-radius: 12px; overflow: hidden; margin-bottom: 50px; }
         th { background: #1e293b; color: #38bdf8; padding: 15px; text-align: left; }
         td { padding: 12px; border-bottom: 1px solid #1e293b; }
         
         footer { margin-top: auto; padding: 30px; width: 100%; text-align: center; }
-        .mgmt-btn { padding: 12px 30px; background: #0f172a; color: #a855f7; border: 2px solid #a855f7; border-radius: 10px; font-weight: 800; cursor: pointer; text-decoration: none; }
+        .mgmt-btn { padding: 12px 30px; background: #0f172a; color: #a855f7; border: 2px solid #a855f7; border-radius: 10px; font-weight: 800; cursor: pointer; text-decoration: none; display: inline-block; transition: 0.3s; }
+        .mgmt-btn:hover { background: #a855f7; color: white; }
     </style>
 </head>
 <body>
@@ -49,13 +53,15 @@
             <div class="actions">
                 <button id="copy-btn">Copy Discord 📋</button>
                 <button id="save-btn">Save to Portal 💾</button>
-                <button id="reset-btn" onclick="location.reload()">Clear 🗑️</button>
+                <button id="reset-btn" onclick="clearData()">Clear 🗑️</button>
             </div>
         </div>
-        <table>
-            <thead><tr><th>Name</th><th>ID</th><th>Hours</th></tr></thead>
-            <tbody id="table-body"></tbody>
-        </table>
+        <div class="table-wrapper">
+            <table>
+                <thead><tr><th>Name</th><th>ID</th><th>Hours</th></tr></thead>
+                <tbody id="table-body"></tbody>
+            </table>
+        </div>
     </div>
 
     <footer>
@@ -69,50 +75,71 @@
         let currentFileData = "";
         let currentFileName = "";
 
+        // Check if there's an active session so it doesn't "break" on back-navigation
+        window.onload = () => {
+            const session = sessionStorage.getItem('lastActiveLog');
+            if (session) {
+                const data = JSON.parse(session);
+                processCSV(data.content, data.name);
+            }
+        };
+
         dropZone.onclick = () => fileInput.click();
-        fileInput.onchange = (e) => handleFile(e.target.files[0]);
-
-        function handleFile(file) {
-            if(!file) return;
-            currentFileName = file.name;
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                currentFileData = e.target.result;
-                const rows = currentFileData.split(/\r?\n/);
-                const tableBody = document.getElementById('table-body');
-                tableBody.innerHTML = '';
-                
-                let totalMins = 0;
-                let count = 0;
-                let discordText = "**Weekly Business Logs:**\n";
-
-                for (let i = 1; i < rows.length; i++) {
-                    const cols = rows[i].split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
-                    if (cols.length < 3) continue;
-                    
-                    const name = cols[0].replace(/["~]/g, '').trim();
-                    const id = cols[1].replace(/"/g, '').trim();
-                    const mins = parseInt(cols[2].replace(/"/g, '')) || 0;
-                    const hrs = (mins / 60).toFixed(1);
-
-                    tableBody.innerHTML += `<tr><td>${name}</td><td>${id}</td><td style="color:#4ade80">${hrs} hrs</td></tr>`;
-                    discordText += `• **${name}**: ${hrs} hrs\n`;
-                    totalMins += mins;
-                    count++;
-                }
-
-                document.getElementById('staff-count').innerText = `Members: ${count}`;
-                document.getElementById('total-hours-sum').innerText = `Total: ${(totalMins/60).toFixed(1)} hrs`;
-                document.getElementById('table-container').style.display = 'block';
-                document.getElementById('drop-zone').style.display = 'none';
-                saveBtn.style.display = 'inline-block';
-
-                document.getElementById('copy-btn').onclick = () => {
-                    navigator.clipboard.writeText(discordText);
-                    alert("Copied!");
+        fileInput.onchange = (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (re) => {
+                    processCSV(re.target.result, file.name);
+                    // Save to session so it persists if you go back/forth
+                    sessionStorage.setItem('lastActiveLog', JSON.stringify({
+                        content: re.target.result,
+                        name: file.name
+                    }));
                 };
+                reader.readAsText(file);
+            }
+        };
+
+        function processCSV(text, filename) {
+            currentFileData = text;
+            currentFileName = filename;
+            const rows = text.split(/\r?\n/);
+            const tableBody = document.getElementById('table-body');
+            tableBody.innerHTML = '';
+            
+            let totalMins = 0;
+            let count = 0;
+            let discordText = "**Weekly Business Logs:**\n";
+
+            for (let i = 1; i < rows.length; i++) {
+                const cols = rows[i].split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
+                if (cols.length < 3) continue;
+                
+                const name = cols[0].replace(/["~]/g, '').trim();
+                const id = cols[1].replace(/"/g, '').trim();
+                const mins = parseInt(cols[2].replace(/"/g, '')) || 0;
+                const hrs = (mins / 60).toFixed(1);
+
+                tableBody.innerHTML += `<tr><td>${name}</td><td>${id}</td><td style="color:#4ade80">${hrs} hrs</td></tr>`;
+                discordText += `• **${name}**: ${hrs} hrs\n`;
+                totalMins += mins;
+                count++;
+            }
+
+            document.getElementById('staff-count').innerText = `Members: ${count}`;
+            document.getElementById('total-hours-sum').innerText = `Total: ${(totalMins/60).toFixed(1)} hrs`;
+            document.getElementById('table-container').style.display = 'block';
+            document.getElementById('drop-zone').style.display = 'none';
+            saveBtn.style.display = 'inline-block';
+            saveBtn.innerText = "Save to Portal 💾";
+            saveBtn.disabled = false;
+            saveBtn.style.background = "#22c55e";
+
+            document.getElementById('copy-btn').onclick = () => {
+                navigator.clipboard.writeText(discordText);
+                alert("Copied!");
             };
-            reader.readAsText(file);
         }
 
         saveBtn.onclick = () => {
@@ -128,10 +155,16 @@
             saveBtn.disabled = true;
         };
 
+        function clearData() {
+            sessionStorage.removeItem('lastActiveLog');
+            location.reload();
+        }
+
         function checkAdmin() {
             const user = prompt("User:");
             const pass = prompt("Pass:");
             if(user === "ADMIN" && pass === "ADMIN") window.location.href = "management.html";
+            else alert("Access Denied");
         }
     </script>
 </body>
