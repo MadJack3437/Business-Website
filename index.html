@@ -6,9 +6,12 @@
     <title>Weekly Business Logs</title>
     <style>
         html, body { 
-            margin: 0; padding: 0; width: 100vw; height: 100vh; overflow: hidden; 
+            margin: 0; padding: 0; 
+            width: 100%; /* Changed from 100vw to prevent horizontal scroll */
+            min-height: 100vh; 
             background-color: #020617; font-family: 'Inter', sans-serif; color: #f1f5f9;
             display: flex; flex-direction: column; align-items: center;
+            overflow-x: hidden; /* Prevent side-scrolling */
         }
 
         /* Prevent layout push and hide scrollbars */
@@ -19,14 +22,16 @@
         }
         *::-webkit-scrollbar { display: none; }
 
-        header { text-align: center; padding: 20px 0 10px 0; flex-shrink: 0; }
+        header { text-align: center; padding: 20px 0 10px 0; flex-shrink: 0; width: 100%; }
         .logo { width: 100px; border-radius: 50%; border: 2px solid #38bdf8; box-shadow: 0 0 15px rgba(56, 189, 248, 0.3); }
         h1 { color: #38bdf8; text-transform: uppercase; letter-spacing: 2px; font-size: 1.2rem; margin: 10px 0; }
         
         .content-area {
-            flex: 1; width: 100%; max-width: 900px; display: flex; flex-direction: column;
-            align-items: center; overflow-y: auto; padding: 10px;
-            -webkit-overflow-scrolling: touch;
+            flex: 1; 
+            width: 95%; /* Wider spread */
+            max-width: 1200px; /* Increased max width */
+            display: flex; flex-direction: column;
+            align-items: center; padding: 10px 0;
         }
 
         #drop-zone { 
@@ -67,11 +72,11 @@
             width: 100%; background: linear-gradient(135deg, #1e293b 0%, #3b0764 100%);
             border: 1px solid #a855f7; border-radius: 12px; padding: 15px; margin-bottom: 15px; display: none;
         }
-        .top-three-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-top: 10px; }
-        .top-card { background: rgba(0,0,0,0.3); padding: 10px; border-radius: 8px; text-align: center; border: 1px solid rgba(255,255,255,0.1); }
+        .top-three-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; margin-top: 10px; }
+        .top-card { background: rgba(0,0,0,0.3); padding: 15px; border-radius: 8px; text-align: center; border: 1px solid rgba(255,255,255,0.1); }
 
         #search-container { width: 100%; margin-bottom: 15px; display: none; }
-        #search-bar { width: 100%; padding: 12px; border-radius: 10px; border: 1px solid #334155; background: #0f172a; color: white; }
+        #search-bar { width: 100%; padding: 12px; border-radius: 10px; border: 1px solid #334155; background: #0f172a; color: white; outline: none; }
 
         .stats-bar { 
             width: 100%; display: flex; justify-content: space-between; align-items: center; 
@@ -79,7 +84,8 @@
         }
         .totals { font-weight: bold; color: #38bdf8; font-size: 0.95rem; }
         .actions { display: flex; gap: 8px; }
-        .actions button { padding: 10px 14px; border-radius: 8px; font-weight: bold; cursor: pointer; border: none; font-size: 0.75rem; }
+        .actions button { padding: 10px 14px; border-radius: 8px; font-weight: bold; cursor: pointer; border: none; font-size: 0.75rem; transition: 0.2s; }
+        .actions button:hover { opacity: 0.8; }
         
         #copy-btn { background: #38bdf8; color: #020617; }
         #save-btn { background: #22c55e; color: white; }
@@ -94,7 +100,7 @@
         /* New Announcement Dropdown Style */
         .ann-header { background: #38bdf8; color: #020617; border: 1px solid #fff; margin-top: 10px; display: none; }
         
-        .header-titles { display: grid; grid-template-columns: 1.5fr 1fr 0.8fr; width: 100%; font-size: 0.75rem; }
+        .header-titles { display: grid; grid-template-columns: 2fr 1fr 1fr; width: 100%; font-size: 0.75rem; }
         
         .slide-wrapper { max-height: 2000px; overflow: hidden; transition: max-height 0.4s ease-out; background: #0f172a; border-radius: 0 0 12px 12px; width: 100%; border: 1px solid #1e293b; border-top: none; margin-bottom: 10px; }
         .collapsed + .slide-wrapper { max-height: 0; border: none; visibility: hidden; }
@@ -103,15 +109,15 @@
 
         /* Table Styling */
         table { width: 100%; border-collapse: collapse; table-layout: fixed; }
-        td { padding: 12px 20px; border-bottom: 1px solid #1e293b; font-size: 0.8rem; color: #cbd5e1; word-break: break-all; }
-        tr { display: grid; grid-template-columns: 1.5fr 1fr 0.8fr; align-items: center; }
+        td { padding: 12px 20px; border-bottom: 1px solid #1e293b; font-size: 0.85rem; color: #cbd5e1; word-break: break-all; }
+        tr { display: grid; grid-template-columns: 2fr 1fr 1fr; align-items: center; }
         .highlight-row { background: rgba(56, 189, 248, 0.2) !important; border-left: 4px solid #38bdf8; }
 
         /* Announcement Content Inside Slide */
         #announcement-box {
             background: #020617; color: #cbd5e1; padding: 15px;
-            font-size: 0.8rem; white-space: pre-wrap; line-height: 1.4;
-            font-family: 'Courier New', monospace; word-break: break-word;
+            font-size: 0.85rem; white-space: pre-wrap; line-height: 1.5;
+            font-family: 'Inter', sans-serif; word-break: break-word;
         }
         #copy-ann-btn { width: calc(100% - 30px); margin: 0 15px 15px 15px; padding: 12px; background: #38bdf8; color: #020617; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; }
 
@@ -290,7 +296,6 @@
             allStaff.sort((a, b) => b.mins - a.mins);
             const topID = allStaff.length > 0 ? allStaff[0].id : "ID_HERE";
 
-            // Set Announcement Content
             generatedAnnouncement = `# Admin Work has been Completed
 Feel free to make suggestions in https://discord.com/channels/739604589627572286/1150135582513700875
 and if you need anything, feel free to dm a member of the team or make a https://discord.com/channels/739604589627572286/1148399710382608424 or a https://discord.com/channels/739604589627572286/1148398639207690290
@@ -304,7 +309,7 @@ Congratulations to <@${topID}> for having the most amount of hours this week and
             const topThreeContainer = document.getElementById('top-three-content');
             topThreeContainer.innerHTML = '';
             allStaff.slice(0, 3).forEach((staff, index) => {
-                topThreeContainer.innerHTML += `<div class="top-card"><div style="font-size:1.2rem">${['🥇', '🥈', '🥉'][index]}</div><div style="font-size:0.7rem; color:#94a3b8"><@${staff.id}></div><div style="font-weight:bold">${staff.hrs} hrs</div></div>`;
+                topThreeContainer.innerHTML += `<div class="top-card"><div style="font-size:1.5rem">${['🥇', '🥈', '🥉'][index]}</div><div style="font-size:0.75rem; color:#94a3b8; margin: 5px 0;"><@${staff.id}></div><div style="font-weight:bold; font-size: 1rem; color: #38bdf8;">${staff.hrs} hrs</div></div>`;
             });
 
             document.getElementById('table-container').style.display = 'block';
