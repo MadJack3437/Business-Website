@@ -31,7 +31,7 @@
             box-shadow: 0 0 20px rgba(245, 158, 11, 0.2);
         }
         .motw-title { color: #f59e0b; font-weight: bold; font-size: 1.1rem; text-transform: uppercase; margin-bottom: 10px; }
-        #motw-name { font-size: 2rem; color: #fff; font-weight: 800; margin-bottom: 5px; }
+        #motw-name { font-size: 2.2rem; color: #fff; font-weight: 800; margin-bottom: 5px; }
         #motw-details { font-size: 1.1rem; color: #cbd5e1; font-family: monospace; }
         .highlight-gold { color: #f59e0b; font-weight: bold; }
 
@@ -75,7 +75,7 @@
     </div>
 
     <main style="width: 100%; display: flex; flex-direction: column; align-items: center;">
-        <div id="drop-zone" id="drop-zone">
+        <div id="drop-zone">
             <p>Drag & Drop CSV here or click to browse</p>
             <input type="file" id="file-input" accept=".csv" hidden>
         </div>
@@ -111,6 +111,7 @@
 
         function cleanData(str) {
             if(!str) return "";
+            // Remove FiveM color codes and all extra quotes
             return str.replace(/~.*?~/g, '').replace(/"/g, '').trim();
         }
 
@@ -122,7 +123,7 @@
                 const rows = text.split(/\r?\n/);
                 if (rows.length < 2) return;
 
-                // Find headers
+                // Dynamically find where "id" and "time" are
                 const headers = rows[0].split(',').map(h => h.trim().toLowerCase());
                 const nameIdx = headers.indexOf('name');
                 const idIdx = headers.indexOf('id');
@@ -138,11 +139,14 @@
                     const line = rows[i].trim();
                     if (!line) continue;
                     
+                    // This regex correctly splits even when names have quotes and commas inside them
                     const cols = line.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
                     
                     const name = cleanData(cols[nameIdx]);
                     const discordId = cleanData(cols[idIdx]);
-                    const mins = parseInt(cols[timeIdx]) || 0;
+                    
+                    // Use the dynamic index to find the time (minutes)
+                    const mins = parseInt(cleanData(cols[timeIdx])) || 0;
                     const hours = parseFloat((mins / 60).toFixed(1));
 
                     if (hours > topMember.hours) {
@@ -159,7 +163,7 @@
                 }
 
                 document.getElementById('staff-count').innerText = `Business Members: ${memberCount}`;
-                document.getElementById('total-hours-sum').innerText = `Total: ${(totalMins/60).toFixed(1)} hrs`;
+                document.getElementById('total-hours-sum').innerText = `Total Hours: ${(totalMins/60).toFixed(1)}`;
                 
                 document.getElementById('motw-name').innerText = topMember.name;
                 document.getElementById('motw-id').innerText = topMember.id;
