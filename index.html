@@ -20,7 +20,7 @@
         }
 
         #drop-zone { 
-            width: 95%; max-width: 600px; padding: 60px 20px; border: 2px dashed #1e293b; 
+            width: 95%; max-width: 600px; padding: 40px 20px; border: 2px dashed #1e293b; 
             border-radius: 20px; background: #0f172a; cursor: pointer; text-align: center; margin: 20px 0; 
         }
 
@@ -60,7 +60,6 @@
         .bc-header { background: linear-gradient(90deg, #1e293b, #78350f); color: #fbbf24; border: 1px solid #fbbf24; margin-top: 10px; }
         .member-header { background: #1e293b; color: #94a3b8; border: 1px solid #334155; margin-top: 10px; }
 
-        /* Updated Grid for 3 columns: ID, KEY, TIME */
         .header-titles { display: grid; grid-template-columns: 1.5fr 1fr 0.8fr; width: 100%; font-size: 0.75rem; }
         
         .slide-wrapper { 
@@ -73,7 +72,7 @@
         .collapsed .arrow-icon { transform: rotate(-90deg); }
 
         table { width: 100%; border-collapse: collapse; }
-        td { padding: 12px 20px; border-bottom: 1px solid #1e293b; font-size: 0.8rem; color: #cbd5e1; }
+        td { padding: 12px 20px; border-bottom: 1px solid #1e293b; font-size: 0.8rem; color: #cbd5e1; word-break: break-all; }
         tr { display: grid; grid-template-columns: 1.5fr 1fr 0.8fr; align-items: center; }
         .highlight-row { background: rgba(56, 189, 248, 0.2) !important; border-left: 4px solid #38bdf8; }
 
@@ -116,19 +115,19 @@
             </div>
 
             <div class="section-header mgmt-header" onclick="toggleSection(this)">
-                <div class="header-titles"><span>Discord ID</span><span>KEY</span><span>Time</span></div>
+                <div class="header-titles"><span>Management (ID)</span><span>KEY</span><span>Time</span></div>
                 <span class="arrow-icon">▼</span>
             </div>
             <div class="slide-wrapper"><table><tbody id="mgmt-table-body"></tbody></table></div>
 
             <div class="section-header bc-header" onclick="toggleSection(this)">
-                <div class="header-titles"><span>Discord ID</span><span>KEY</span><span>Time</span></div>
+                <div class="header-titles"><span>Coordination (ID)</span><span>KEY</span><span>Time</span></div>
                 <span class="arrow-icon">▼</span>
             </div>
             <div class="slide-wrapper"><table><tbody id="bc-table-body"></tbody></table></div>
 
             <div class="section-header member-header collapsed" onclick="toggleSection(this)">
-                <div class="header-titles"><span>Discord ID</span><span>KEY</span><span>Time</span></div>
+                <div class="header-titles"><span>Members (ID)</span><span>KEY</span><span>Time</span></div>
                 <span class="arrow-icon">▼</span>
             </div>
             <div class="slide-wrapper"><table><tbody id="member-table-body"></tbody></table></div>
@@ -174,7 +173,7 @@
         }
 
         function processCSV(text) {
-            const rows = text.trim().split(/\r?\n/).filter(r => r.trim() !== '');
+            const lines = text.trim().split(/\r?\n/).filter(r => r.trim() !== '');
             const mgmtTable = document.getElementById('mgmt-table-body');
             const bcTable = document.getElementById('bc-table-body');
             const memTable = document.getElementById('member-table-body');
@@ -185,26 +184,27 @@
             let allStaff = [];
             let discordText = "**Weekly Business Logs:**\n";
 
-            for (let i = 1; i < rows.length; i++) {
-                const cols = rows[i].split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
+            for (let i = 1; i < lines.length; i++) {
+                const cols = lines[i].split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
                 if (cols.length < 4) continue;
 
                 const nameRaw = cols[0].replace(/["~]/g, '').trim();
                 const id = cols[1].replace(/"/g, '').trim();
-                const callsign = cols[2] ? cols[2].replace(/"/g, '').toUpperCase() : "";
-                // Assuming Service/Business Name is in column index 3 (4th column)
-                const keyName = cols[3] ? cols[3].replace(/"/g, '').trim() : "N/A";
-                const mins = parseInt(cols[cols.length - 1].replace(/"/g, '')) || 0;
+                const keyName = cols[2].replace(/"/g, '').trim();
+                const mins = parseInt(cols[3].replace(/"/g, '')) || 0;
                 const hrs = (mins / 60).toFixed(1);
 
                 allStaff.push({ id, mins, hrs });
 
                 const rowHtml = `<tr><td>${id}</td><td style="color:#94a3b8; font-style: italic;">${keyName}</td><td style="color:#4ade80; font-weight:bold;">${hrs} hrs</td></tr>`;
 
-                if (callsign.includes("BUSMAN") || nameRaw.toUpperCase().includes("BUSMAN")) {
+                // Sorting based on the KEY (Dept) strictly
+                const upperKey = keyName.toUpperCase();
+
+                if (upperKey === "BUSMAN") {
                     mgmtTable.innerHTML += rowHtml;
                     discordText += `• [MGMT] <@${id}> (${keyName}): ${hrs} hrs\n`;
-                } else if (callsign.includes("BC") || nameRaw.toUpperCase().includes("BC")) {
+                } else if (upperKey === "BC") {
                     bcTable.innerHTML += rowHtml;
                     discordText += `• [BC] <@${id}> (${keyName}): ${hrs} hrs\n`;
                 } else {
@@ -214,20 +214,14 @@
                 totalCount++; totalMins += mins;
             }
 
-            // Top 3 Logic
+            // Hall of Fame
             allStaff.sort((a, b) => b.mins - a.mins);
             const top3 = allStaff.slice(0, 3);
             const topThreeContainer = document.getElementById('top-three-content');
             topThreeContainer.innerHTML = '';
-            
             top3.forEach((staff, index) => {
                 const medals = ['🥇', '🥈', '🥉'];
-                topThreeContainer.innerHTML += `
-                    <div class="top-card ${index === 0 ? 'rank-1' : ''}">
-                        <div class="medal">${medals[index]}</div>
-                        <div style="font-size: 0.7rem; color: #94a3b8; margin: 4px 0;"><@${staff.id}></div>
-                        <div style="font-weight: bold; color: #fff;">${staff.hrs} hrs</div>
-                    </div>`;
+                topThreeContainer.innerHTML += `<div class="top-card"><div style="font-size:1.2rem">${medals[index]}</div><div style="font-size:0.7rem; color:#94a3b8"><@${staff.id}></div><div style="font-weight:bold">${staff.hrs} hrs</div></div>`;
             });
 
             document.getElementById('table-container').style.display = 'block';
