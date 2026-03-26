@@ -5,13 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Weekly Business Logs</title>
     <style>
-        /* Global Reset */
         html, body { 
             margin: 0; padding: 0; width: 100vw; height: 100vh; overflow: hidden; 
             background-color: #020617; font-family: 'Inter', sans-serif; color: #f1f5f9;
             display: flex; flex-direction: column; align-items: center;
         }
-
         header { text-align: center; padding: 20px 0 10px 0; flex-shrink: 0; }
         .logo { width: 100px; border-radius: 50%; border: 2px solid #38bdf8; box-shadow: 0 0 15px rgba(56, 189, 248, 0.3); }
         h1 { color: #38bdf8; text-transform: uppercase; letter-spacing: 2px; font-size: 1.2rem; margin: 10px 0; }
@@ -27,10 +25,16 @@
             border-radius: 20px; background: #0f172a; cursor: pointer; text-align: center; margin: 20px 0; 
         }
 
+        #search-container { width: 100%; margin-bottom: 15px; display: none; }
+        #search-bar { 
+            width: 100%; padding: 12px; border-radius: 10px; border: 1px solid #334155; 
+            background: #0f172a; color: white; box-sizing: border-box; outline: none;
+        }
+
         #top-member-banner {
             width: 100%; background: linear-gradient(90deg, #1e293b, #3b0764);
             border: 1px solid #a855f7; border-radius: 12px; padding: 15px;
-            margin-bottom: 15px; text-align: center; display: none; box-sizing: border-box;
+            margin-bottom: 15px; text-align: center; display: none;
         }
 
         .stats-bar { 
@@ -42,81 +46,27 @@
         .actions { display: flex; gap: 8px; }
         .actions button { padding: 10px 16px; border-radius: 8px; font-weight: bold; cursor: pointer; border: none; font-size: 0.85rem; }
         #copy-btn { background: #38bdf8; color: #020617; }
-        #save-btn { background: #22c55e; color: white; display: none; }
         #reset-btn { background: #ef4444; color: white; }
 
         .section-header {
-            padding: 14px 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            cursor: pointer;
-            border-radius: 12px;
-            width: 100%;
-            box-sizing: border-box;
-            margin-bottom: 5px;
-            text-transform: uppercase;
-            font-weight: 900;
-            letter-spacing: 1px;
-            transition: 0.2s;
+            padding: 14px 20px; display: flex; justify-content: space-between; align-items: center;
+            cursor: pointer; border-radius: 12px; width: 100%; box-sizing: border-box;
+            margin-bottom: 5px; text-transform: uppercase; font-weight: 900;
         }
 
-        /* Business Management - Blue & Orange 2-Tone */
-        .mgmt-header {
-            background: linear-gradient(90deg, #0ea5e9 0%, #f97316 100%);
-            color: #ffffff;
-            border: 1px solid #ffffff;
-            text-shadow: 1px 1px 3px rgba(0,0,0,0.3);
-        }
+        .mgmt-header { background: linear-gradient(90deg, #0ea5e9 0%, #f97316 100%); color: #fff; border: 1px solid #fff; }
+        .bc-header { background: linear-gradient(90deg, #1e293b, #78350f); color: #fbbf24; border: 1px solid #fbbf24; margin-top: 10px; }
+        .member-header { background: #1e293b; color: #94a3b8; border: 1px solid #334155; margin-top: 10px; }
 
-        /* Business Coordination - Gold Theme */
-        .bc-header {
-            background: linear-gradient(90deg, #1e293b, #78350f);
-            color: #fbbf24;
-            border: 1px solid #fbbf24;
-            margin-top: 10px;
-        }
-
-        /* Business Members - Slate Theme */
-        .member-header {
-            background: #1e293b;
-            color: #94a3b8;
-            border: 1px solid #334155;
-            margin-top: 10px;
-        }
-
-        .header-titles {
-            display: grid;
-            grid-template-columns: 2fr 1fr;
-            width: 100%;
-            font-size: 0.8rem;
-        }
-
-        .slide-wrapper {
-            max-height: 2000px;
-            overflow: hidden;
-            transition: max-height 0.4s ease-out;
-            background: #0f172a;
-            border-radius: 0 0 12px 12px;
-            width: 100%;
-            border: 1px solid #1e293b;
-            border-top: none;
-            margin-bottom: 5px;
-        }
-
+        .header-titles { display: grid; grid-template-columns: 2fr 1fr; width: 100%; font-size: 0.8rem; }
+        .slide-wrapper { max-height: 2000px; overflow: hidden; transition: max-height 0.4s ease-out; background: #0f172a; border-radius: 0 0 12px 12px; width: 100%; border: 1px solid #1e293b; border-top: none; }
         .collapsed + .slide-wrapper { max-height: 0; border: none; }
-        .collapsed .arrow-icon { transform: rotate(-90deg); }
-        .arrow-icon { transition: 0.3s; font-size: 0.7rem; }
 
         table { width: 100%; border-collapse: collapse; }
         td { padding: 12px 20px; border-bottom: 1px solid #1e293b; font-size: 0.85rem; color: #cbd5e1; }
         tr { display: grid; grid-template-columns: 2fr 1fr; align-items: center; }
 
-        footer { 
-            width: 100%; padding: 15px 20px 25px 20px; background: #020617; 
-            display: flex; justify-content: space-between; align-items: center; 
-            border-top: 1px solid #1e293b; flex-shrink: 0;
-        }
+        footer { width: 100%; padding: 15px 20px 25px 20px; background: #020617; display: flex; justify-content: space-between; align-items: center; border-top: 1px solid #1e293b; }
         .mgmt-btn { padding: 12px 30px; background: #0f172a; color: #ef4444; border: 2px solid #ef4444; border-radius: 10px; font-weight: 800; cursor: pointer; text-decoration: none; font-size: 0.85rem; }
     </style>
 </head>
@@ -134,94 +84,78 @@
         </div>
 
         <div id="table-container" style="display: none; width: 100%;">
+            
             <div id="top-member-banner">
-                <h3 style="margin: 0; color: #fbbf24; font-size: 0.75rem;">🏆 TOP BUSINESS COORDINATOR</h3>
+                <h3 style="margin: 0; color: #fbbf24; font-size: 0.75rem;">🏆 TOP BUSINESS MEMBER</h3>
                 <p id="top-member-info" style="margin: 5px 0 0 0; font-weight: bold; color: #fff; font-size: 1.1rem;"></p>
+            </div>
+
+            <div id="search-container">
+                <input type="text" id="search-bar" placeholder="Search by Discord ID..." onkeyup="filterResults()">
             </div>
 
             <div class="stats-bar">
                 <div class="totals">
-                    <span id="staff-count">Coord: 0</span> | <span id="total-hours-sum">0 hrs</span>
+                    <span id="staff-count">Total: 0</span> | <span id="total-hours-sum">0 hrs</span>
                 </div>
                 <div class="actions">
                     <button id="copy-btn">Copy Logs 📋</button>
-                    <button id="save-btn">Save 💾</button>
                     <button id="reset-btn" onclick="location.reload()">Clear 🗑️</button>
                 </div>
             </div>
 
             <div class="section-header mgmt-header" onclick="this.classList.toggle('collapsed')">
-                <div class="header-titles">
-                    <span>Discord ID (Management)</span>
-                    <span>Duty Time</span>
-                </div>
-                <span class="arrow-icon">▼</span>
+                <div class="header-titles"><span>Discord ID (Management)</span><span>Time</span></div>
             </div>
-            <div class="slide-wrapper">
-                <table><tbody id="mgmt-table-body"></tbody></table>
-            </div>
+            <div class="slide-wrapper"><table><tbody id="mgmt-table-body"></tbody></table></div>
 
             <div class="section-header bc-header" onclick="this.classList.toggle('collapsed')">
-                <div class="header-titles">
-                    <span>Discord ID (Coordination)</span>
-                    <span>Duty Time</span>
-                </div>
-                <span class="arrow-icon">▼</span>
+                <div class="header-titles"><span>Discord ID (Coordination)</span><span>Time</span></div>
             </div>
-            <div class="slide-wrapper">
-                <table><tbody id="bc-table-body"></tbody></table>
-            </div>
+            <div class="slide-wrapper"><table><tbody id="bc-table-body"></tbody></table></div>
 
             <div class="section-header member-header collapsed" onclick="this.classList.toggle('collapsed')">
-                <div class="header-titles">
-                    <span>Discord ID (Members)</span>
-                    <span>Duty Time</span>
-                </div>
-                <span class="arrow-icon">▼</span>
+                <div class="header-titles"><span>Discord ID (Members)</span><span>Time</span></div>
             </div>
-            <div class="slide-wrapper">
-                <table><tbody id="member-table-body"></tbody></table>
-            </div>
+            <div class="slide-wrapper"><table><tbody id="member-table-body"></tbody></table></div>
         </div>
     </div>
 
     <footer>
         <span style="font-size: 0.65rem; color: #475569;">SACRP BUSINESS MANAGEMENT</span>
-        <a href="#" onclick="checkAdmin()" class="mgmt-btn">🔓 PORTAL</a>
+        <a href="#" class="mgmt-btn">🔓 PORTAL</a>
     </footer>
 
     <script>
         const fileInput = document.getElementById('file-input');
         const dropZone = document.getElementById('drop-zone');
-        const saveBtn = document.getElementById('save-btn');
-        let currentFileData = "";
-        let currentFileName = "";
 
         dropZone.onclick = () => fileInput.click();
-        fileInput.onchange = (e) => handleFile(e.target.files[0]);
-
-        function handleFile(file) {
-            if (!file) return;
-            currentFileName = file.name;
+        fileInput.onchange = (e) => {
+            if(!e.target.files[0]) return;
             const reader = new FileReader();
-            reader.onload = (e) => {
-                currentFileData = e.target.result;
-                processCSV(e.target.result);
-            };
-            reader.readAsText(file);
+            reader.onload = (ev) => processCSV(ev.target.result);
+            reader.readAsText(e.target.files[0]);
+        };
+
+        function filterResults() {
+            const query = document.getElementById('search-bar').value.toLowerCase();
+            const rows = document.querySelectorAll('tbody tr');
+            rows.forEach(row => {
+                const idText = row.cells[0].innerText.toLowerCase();
+                row.style.display = idText.includes(query) ? 'grid' : 'none';
+            });
         }
 
         function processCSV(text) {
-            const rows = text.trim().split(/\r?\n/).filter(row => row.trim() !== '');
+            const rows = text.trim().split(/\r?\n/).filter(r => r.trim() !== '');
             const mgmtTable = document.getElementById('mgmt-table-body');
             const bcTable = document.getElementById('bc-table-body');
             const memTable = document.getElementById('member-table-body');
             
-            mgmtTable.innerHTML = '';
-            bcTable.innerHTML = '';
-            memTable.innerHTML = '';
+            mgmtTable.innerHTML = ''; bcTable.innerHTML = ''; memTable.innerHTML = '';
 
-            let bcMins = 0, bcCount = 0, maxMins = -1, topNameMention = "";
+            let totalCount = 0, totalMins = 0, maxMins = -1, topMention = "";
             let discordText = "**Weekly Business Logs:**\n";
 
             for (let i = 1; i < rows.length; i++) {
@@ -236,54 +170,40 @@
 
                 const rowHtml = `<tr><td>${id}</td><td style="color:#4ade80; font-weight:bold;">${hrs} hrs</td></tr>`;
 
-                // Sorting Logic
+                // Global Top Member Check (any category)
+                if (mins > maxMins) { 
+                    maxMins = mins; 
+                    topMention = `<@${id}> — ${hrs} hrs`; 
+                }
+
                 if (callsign.includes("BUSMAN") || nameRaw.toUpperCase().includes("BUSMAN")) {
                     mgmtTable.innerHTML += rowHtml;
                     discordText += `• [MGMT] <@${id}>: ${hrs} hrs\n`;
-                } 
-                else if (callsign.includes("BC") || nameRaw.toUpperCase().includes("BC")) {
+                } else if (callsign.includes("BC") || nameRaw.toUpperCase().includes("BC")) {
                     bcTable.innerHTML += rowHtml;
                     discordText += `• [BC] <@${id}>: ${hrs} hrs\n`;
-                    bcMins += mins;
-                    bcCount++;
-                    if (mins > maxMins) {
-                        maxMins = mins;
-                        topNameMention = `<@${id}> — ${hrs} hrs`;
-                    }
-                } 
-                else {
+                } else {
                     memTable.innerHTML += rowHtml;
                     discordText += `• <@${id}>: ${hrs} hrs\n`;
                 }
+                totalCount++; totalMins += mins;
             }
 
             document.getElementById('table-container').style.display = 'block';
+            document.getElementById('search-container').style.display = 'block';
             document.getElementById('drop-zone').style.display = 'none';
-            document.getElementById('staff-count').innerText = `Coord: ${bcCount}`;
-            document.getElementById('total-hours-sum').innerText = `Total BC: ${(bcMins/60).toFixed(1)} hrs`;
-            document.getElementById('top-member-info').innerHTML = topNameMention || "N/A";
-            document.getElementById('top-member-banner').style.display = bcCount > 0 ? 'block' : 'none';
-            saveBtn.style.display = 'block';
+            document.getElementById('staff-count').innerText = `Total: ${totalCount}`;
+            document.getElementById('total-hours-sum').innerText = `${(totalMins/60).toFixed(1)} hrs`;
+            
+            // Set Top Business Member
+            document.getElementById('top-member-info').innerHTML = topMention || "N/A";
+            document.getElementById('top-member-banner').style.display = maxMins > 0 ? 'block' : 'none';
 
             document.getElementById('copy-btn').onclick = () => {
-                navigator.clipboard.writeText(discordText);
-                alert("Logs Copied with Discord Mentions!");
+                const finalCopy = `${discordText}\n**Summary:**\n• Headcount: ${totalCount}\n• Combined Time: ${(totalMins/60).toFixed(1)} hrs`;
+                navigator.clipboard.writeText(finalCopy);
+                alert("Logs & Summary Copied!");
             };
-        }
-
-        saveBtn.onclick = () => {
-            const logs = JSON.parse(localStorage.getItem('businessLogHistory')) || [];
-            logs.push({ date: new Date().toLocaleString(), fileName: currentFileName, rawData: currentFileData });
-            localStorage.setItem('businessLogHistory', JSON.stringify(logs));
-            saveBtn.innerText = "✅ Saved!";
-            saveBtn.disabled = true;
-        };
-
-        function checkAdmin() {
-            const user = prompt("User:");
-            const pass = prompt("Pass:");
-            if(user === "ADMIN" && pass === "ADMIN") window.location.href = "management.html";
-            else alert("Denied");
         }
     </script>
 </body>
