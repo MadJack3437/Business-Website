@@ -5,59 +5,28 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Business Management</title>
     <style>
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: #020617;
-            color: #f1f5f9;
-            margin: 0; padding: 20px;
-            display: flex; flex-direction: column; align-items: center;
-        }
+        body { font-family: 'Inter', sans-serif; background-color: #020617; color: #f1f5f9; margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center; }
         header { text-align: center; margin-bottom: 30px; }
         .logo { width: 100px; height: auto; border-radius: 50%; border: 2px solid #a855f7; box-shadow: 0 0 20px rgba(168, 85, 247, 0.3); }
         h1 { color: #a855f7; margin: 10px 0; text-transform: uppercase; letter-spacing: 2px; }
+        .nav-link { color: #38bdf8; text-decoration: none; font-size: 0.9rem; margin-bottom: 20px; font-weight: bold; }
         
-        .nav-link { color: #38bdf8; text-decoration: none; font-size: 0.9rem; margin-bottom: 20px; transition: 0.3s; font-weight: bold; }
-        .nav-link:hover { text-decoration: underline; }
-
-        .management-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 20px;
-            width: 100%;
-            max-width: 900px;
-        }
-
-        .card {
-            background: #0f172a;
-            border: 1px solid #1e293b;
-            padding: 20px;
-            border-radius: 12px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-        }
-
+        .management-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; width: 100%; max-width: 1000px; }
+        .card { background: #0f172a; border: 1px solid #1e293b; padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
         .card h2 { color: #f1f5f9; font-size: 1.2rem; border-bottom: 1px solid #1e293b; padding-bottom: 10px; margin-top: 0; }
-        .card p { color: #94a3b8; font-size: 0.9rem; line-height: 1.5; }
         
-        /* Strike Tracker Styles */
-        .strike-input-group { display: flex; flex-direction: column; gap: 10px; margin-top: 15px; }
-        input, textarea { 
-            background: #1e293b; border: 1px solid #334155; 
-            color: white; padding: 8px; border-radius: 6px; outline: none;
+        /* Archive Styling */
+        .archive-list { margin-top: 15px; }
+        .archive-item { 
+            background: #1e293b; padding: 12px; border-radius: 8px; margin-bottom: 10px; 
+            display: flex; justify-content: space-between; align-items: center;
         }
-        .strike-list { margin-top: 15px; max-height: 200px; overflow-y: auto; font-size: 0.85rem; }
-        .strike-item { 
-            background: #020617; padding: 10px; border-left: 3px solid #ef4444; 
-            margin-bottom: 8px; border-radius: 4px; position: relative;
-        }
-        .delete-strike { position: absolute; right: 10px; top: 10px; color: #ef4444; cursor: pointer; font-weight: bold; }
+        .archive-info { font-size: 0.85rem; }
+        .archive-date { color: #a855f7; font-weight: bold; display: block; }
+        .view-btn { background: #38bdf8; color: #020617; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 0.75rem; font-weight: bold; }
+        .delete-btn { background: #ef4444; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 0.75rem; margin-left: 5px; }
 
-        .action-btn {
-            display: block; width: 100%; padding: 10px; margin-top: 15px;
-            background: #1e293b; color: #a855f7; text-align: center;
-            text-decoration: none; border-radius: 6px; border: 1px solid #a855f7;
-            font-weight: bold; cursor: pointer; transition: 0.3s;
-        }
-        .action-btn:hover { background: #a855f7; color: #fff; }
+        .action-btn { display: block; width: 100%; padding: 10px; margin-top: 15px; background: #1e293b; color: #a855f7; text-align: center; border-radius: 6px; border: 1px solid #a855f7; font-weight: bold; cursor: pointer; }
     </style>
 </head>
 <body>
@@ -70,75 +39,78 @@
     <a href="index.html" class="nav-link">← Return to Staff Logs</a>
 
     <div class="management-grid">
-        <div class="card">
-            <h2>Performance Tracking</h2>
-            <p>Review historical data and track member growth over the last 30 days.</p>
-            <button class="action-btn" onclick="alert('Report generator coming soon...')">View Reports</button>
+        <div class="card" style="grid-column: span 2; border-color: #38bdf8;">
+            <h2 style="color: #38bdf8;">📁 Saved Log History</h2>
+            <p style="font-size: 0.8rem; color: #64748b;">Every CSV you upload on the main page is automatically stored here.</p>
+            <div id="archive-container" class="archive-list">
+                </div>
+            <button class="action-btn" style="border-color: #ef4444; color: #ef4444; margin-top: 20px; width: auto;" onclick="clearAllLogs()">Wipe All History ⚠️</button>
         </div>
 
         <div class="card" style="border-color: #ef4444;">
             <h2 style="color: #ef4444;">Staff Strike Tracker</h2>
-            <div class="strike-input-group">
-                <input type="text" id="strike-name" placeholder="Staff Name">
-                <textarea id="strike-reason" placeholder="Reason for strike..."></textarea>
-                <button class="action-btn" style="border-color: #ef4444; color: #ef4444;" onclick="addStrike()">Issue Strike ⚠️</button>
-            </div>
-            <div class="strike-list" id="strike-list">
-                </div>
-        </div>
-
-        <div class="card" style="border-color: #4ade80;">
-            <h2 style="color: #4ade80;">Promotion Candidates</h2>
-            <p>The top 5 most active business members are currently pending review.</p>
-            <a href="#" class="action-btn" style="border-color: #4ade80; color: #4ade80;">Review List</a>
+            <p>Recent strikes issued to business members.</p>
+            <div id="strike-summary"></div>
+            <a href="#" class="action-btn" style="border-color: #ef4444;">Manage Strikes</a>
         </div>
     </div>
 
     <script>
-        // Load strikes on page load
-        window.onload = displayStrikes;
+        window.onload = function() {
+            displayArchive();
+        };
 
-        function addStrike() {
-            const name = document.getElementById('strike-name').value;
-            const reason = document.getElementById('strike-reason').value;
-            const date = new Date().toLocaleDateString();
+        function displayArchive() {
+            const container = document.getElementById('archive-container');
+            const logs = JSON.parse(localStorage.getItem('businessLogHistory')) || [];
 
-            if (!name || !reason) return alert("Please fill in both fields.");
+            if (logs.length === 0) {
+                container.innerHTML = '<p style="text-align:center; opacity:0.5;">No saved logs found.</p>';
+                return;
+            }
 
-            const strikes = JSON.parse(localStorage.getItem('staffStrikes')) || [];
-            strikes.push({ name, reason, date, id: Date.now() });
-            localStorage.setItem('staffStrikes', JSON.stringify(strikes));
-
-            document.getElementById('strike-name').value = '';
-            document.getElementById('strike-reason').value = '';
-            displayStrikes();
-        }
-
-        function displayStrikes() {
-            const list = document.getElementById('strike-list');
-            const strikes = JSON.parse(localStorage.getItem('staffStrikes')) || [];
-            
-            list.innerHTML = strikes.length === 0 ? '<p style="text-align:center; opacity:0.5;">No strikes on record.</p>' : '';
-            
-            strikes.reverse().forEach(s => {
+            container.innerHTML = '';
+            logs.reverse().forEach((log, index) => {
                 const div = document.createElement('div');
-                div.className = 'strike-item';
+                div.className = 'archive-item';
                 div.innerHTML = `
-                    <span class="delete-strike" onclick="deleteStrike(${s.id})">×</span>
-                    <strong style="color:#ef4444">${s.name}</strong> <small style="opacity:0.6">(${s.date})</small><br>
-                    <span style="display:block; margin-top:5px;">${s.reason}</span>
+                    <div class="archive-info">
+                        <span class="archive-date">${log.date}</span>
+                        <span style="opacity:0.7">${log.fileName}</span>
+                    </div>
+                    <div>
+                        <button class="view-btn" onclick="viewLog(${index})">Download CSV</button>
+                        <button class="delete-btn" onclick="deleteLog(${index})">Delete</button>
+                    </div>
                 `;
-                list.appendChild(div);
+                container.appendChild(div);
             });
         }
 
-        function deleteStrike(id) {
-            let strikes = JSON.parse(localStorage.getItem('staffStrikes')) || [];
-            strikes = strikes.filter(s => s.id !== id);
-            localStorage.setItem('staffStrikes', JSON.stringify(strikes));
-            displayStrikes();
+        function viewLog(index) {
+            const logs = JSON.parse(localStorage.getItem('businessLogHistory')) || [];
+            const log = logs.reverse()[index];
+            const blob = new Blob([log.rawData], { type: 'text/csv' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `RESTORED_${log.fileName}`;
+            a.click();
+        }
+
+        function deleteLog(index) {
+            if(!confirm("Delete this log permanently?")) return;
+            let logs = JSON.parse(localStorage.getItem('businessLogHistory')) || [];
+            logs.reverse().splice(index, 1);
+            localStorage.setItem('businessLogHistory', JSON.stringify(logs.reverse()));
+            displayArchive();
+        }
+
+        function clearAllLogs() {
+            if(!confirm("EXTREME WARNING: This will delete EVERY saved CSV. Proceed?")) return;
+            localStorage.removeItem('businessLogHistory');
+            displayArchive();
         }
     </script>
-
 </body>
 </html>
