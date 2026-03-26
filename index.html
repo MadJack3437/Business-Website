@@ -5,155 +5,180 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Weekly Business Logs</title>
     <style>
-        html, body { 
-            margin: 0; padding: 0; 
-            width: 100%; /* Changed from 100vw to prevent horizontal scroll */
-            min-height: 100vh; 
-            background-color: #020617; font-family: 'Inter', sans-serif; color: #f1f5f9;
-            display: flex; flex-direction: column; align-items: center;
-            overflow-x: hidden; /* Prevent side-scrolling */
+        :root {
+            --bg: #020617;
+            --card-bg: #0f172a;
+            --text: #f1f5f9;
+            --sub-text: #94a3b8;
+            --border: #1e293b;
+            --primary: #38bdf8;
+            --accent: #ef4444;
+            --header-gradient: linear-gradient(90deg, #0ea5e9 0%, #f97316 100%);
         }
 
-        /* Prevent layout push and hide scrollbars */
-        * { 
-            box-sizing: border-box; 
-            scrollbar-width: none; 
-            -ms-overflow-style: none; 
+        .light-mode {
+            --bg: #f8fafc;
+            --card-bg: #ffffff;
+            --text: #0f172a;
+            --sub-text: #64748b;
+            --border: #e2e8f0;
+            --primary: #0ea5e9;
+            --accent: #dc2626;
         }
+
+        html, body { 
+            margin: 0; padding: 0; width: 100%; min-height: 100vh; 
+            background-color: var(--bg); font-family: 'Inter', sans-serif; color: var(--text);
+            display: flex; flex-direction: column; align-items: center; overflow-x: hidden;
+            transition: background 0.3s ease, color 0.3s ease;
+        }
+
+        * { box-sizing: border-box; scrollbar-width: none; }
         *::-webkit-scrollbar { display: none; }
 
-        header { text-align: center; padding: 20px 0 10px 0; flex-shrink: 0; width: 100%; }
-        .logo { width: 100px; border-radius: 50%; border: 2px solid #38bdf8; box-shadow: 0 0 15px rgba(56, 189, 248, 0.3); }
-        h1 { color: #38bdf8; text-transform: uppercase; letter-spacing: 2px; font-size: 1.2rem; margin: 10px 0; }
+        header { text-align: center; padding: 20px 0 10px 0; width: 100%; position: relative; }
         
-        .content-area {
-            flex: 1; 
-            width: 95%; /* Wider spread */
-            max-width: 1200px; /* Increased max width */
-            display: flex; flex-direction: column;
-            align-items: center; padding: 10px 0;
+        .theme-toggle {
+            position: absolute; top: 20px; right: 20px;
+            background: var(--card-bg); border: 1px solid var(--border);
+            color: var(--text); padding: 8px; border-radius: 50%;
+            cursor: pointer; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;
+            z-index: 100; font-size: 1.2rem; box-shadow: 0 4px 10px rgba(0,0,0,0.1);
         }
+
+        .logo { width: 100px; border-radius: 50%; border: 2px solid var(--primary); box-shadow: 0 0 15px rgba(56, 189, 248, 0.3); }
+        h1 { color: var(--primary); text-transform: uppercase; letter-spacing: 2px; font-size: 1.2rem; margin: 10px 0; }
+        
+        .content-area { flex: 1; width: 95%; max-width: 1200px; display: flex; flex-direction: column; align-items: center; padding: 10px 0; }
 
         #drop-zone { 
-            width: 95%; max-width: 600px; padding: 40px 20px; border: 2px dashed #1e293b; 
-            border-radius: 20px; background: #0f172a; cursor: pointer; text-align: center; margin: 20px 0; 
+            width: 95%; max-width: 600px; padding: 40px 20px; border: 2px dashed var(--border); 
+            border-radius: 20px; background: var(--card-bg); cursor: pointer; text-align: center; margin: 20px 0; 
         }
 
-        /* Success Toast */
-        #success-toast {
-            position: fixed; top: 20px; right: 20px; background: #22c55e; color: white;
-            padding: 12px 24px; border-radius: 8px; font-weight: bold; transform: translateY(-100px);
-            transition: 0.5s ease; z-index: 4000; box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-        }
-        #success-toast.show { transform: translateY(0); }
-
-        /* Login Styling */
+        /* Login Overlay */
         #login-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(2, 6, 23, 0.95); display: none; 
-            justify-content: center; align-items: center; z-index: 3000;
+            justify-content: center; align-items: center; z-index: 6000;
         }
         .login-box {
-            background: #0f172a; padding: 30px; border-radius: 20px; border: 1px solid #ef4444;
-            width: 90%; max-width: 350px; text-align: center;
+            background: var(--card-bg); padding: 30px; border-radius: 20px; border: 1px solid var(--accent);
+            width: 90%; max-width: 350px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.5);
         }
         .login-box input {
-            width: 100%; padding: 12px; margin: 10px 0; border-radius: 8px; border: 1px solid #1e293b;
-            background: #020617; color: white; outline: none;
+            width: 100%; padding: 12px; margin: 10px 0; border-radius: 8px; border: 1px solid var(--border);
+            background: var(--bg); color: var(--text); outline: none;
         }
         .login-box button {
             width: 100%; padding: 12px; margin-top: 10px; border-radius: 8px; border: none;
-            background: #ef4444; color: white; font-weight: bold; cursor: pointer;
+            background: var(--accent); color: white; font-weight: bold; cursor: pointer;
         }
-        #login-error { color: #ef4444; font-size: 0.8rem; margin-top: 10px; display: none; }
 
-        /* Banners and Search */
+        /* Notifications */
+        #success-toast {
+            position: fixed; top: 20px; right: 20px; background: #22c55e; color: white;
+            padding: 12px 24px; border-radius: 8px; font-weight: bold; transform: translateY(-100px);
+            transition: 0.5s ease; z-index: 7000; box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        }
+        #success-toast.show { transform: translateY(0); }
+
+        /* Dashboard Items */
         #top-three-banner {
-            width: 100%; background: linear-gradient(135deg, #1e293b 0%, #3b0764 100%);
+            width: 100%; background: linear-gradient(135deg, var(--border) 0%, #3b0764 100%);
             border: 1px solid #a855f7; border-radius: 12px; padding: 15px; margin-bottom: 15px; display: none;
         }
         .top-three-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; margin-top: 10px; }
         .top-card { background: rgba(0,0,0,0.3); padding: 15px; border-radius: 8px; text-align: center; border: 1px solid rgba(255,255,255,0.1); }
 
         #search-container { width: 100%; margin-bottom: 15px; display: none; }
-        #search-bar { width: 100%; padding: 12px; border-radius: 10px; border: 1px solid #334155; background: #0f172a; color: white; outline: none; }
+        #search-bar { width: 100%; padding: 12px; border-radius: 10px; border: 1px solid var(--border); background: var(--card-bg); color: var(--text); outline: none; }
 
         .stats-bar { 
             width: 100%; display: flex; justify-content: space-between; align-items: center; 
-            background: #1e293b; padding: 15px 20px; border-radius: 12px; margin-bottom: 15px; 
+            background: var(--card-bg); padding: 15px 20px; border-radius: 12px; margin-bottom: 15px; border: 1px solid var(--border);
         }
-        .totals { font-weight: bold; color: #38bdf8; font-size: 0.95rem; }
+        .totals { font-weight: bold; color: var(--primary); font-size: 0.95rem; }
         .actions { display: flex; gap: 8px; }
         .actions button { padding: 10px 14px; border-radius: 8px; font-weight: bold; cursor: pointer; border: none; font-size: 0.75rem; transition: 0.2s; }
-        .actions button:hover { opacity: 0.8; }
         
-        #copy-btn { background: #38bdf8; color: #020617; }
+        #copy-btn { background: var(--primary); color: #fff; }
         #save-btn { background: #22c55e; color: white; }
-        #reset-btn { background: #ef4444; color: white; }
+        #reset-btn { background: var(--accent); color: white; }
 
-        /* Section Styling */
+        /* Log Sections */
         .section-header { padding: 14px 20px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; border-radius: 12px; width: 100%; margin-bottom: 5px; text-transform: uppercase; font-weight: 900; }
-        .mgmt-header { background: linear-gradient(90deg, #0ea5e9 0%, #f97316 100%); color: #fff; border: 1px solid #fff; }
+        .mgmt-header { background: var(--header-gradient); color: #fff; border: 1px solid #fff; }
         .bc-header { background: linear-gradient(90deg, #1e293b, #78350f); color: #fbbf24; border: 1px solid #fbbf24; margin-top: 10px; }
-        .member-header { background: #1e293b; color: #94a3b8; border: 1px solid #334155; margin-top: 10px; }
-        
-        /* New Announcement Dropdown Style */
-        .ann-header { background: #38bdf8; color: #020617; border: 1px solid #fff; margin-top: 10px; display: none; }
+        .member-header { background: var(--card-bg); color: var(--sub-text); border: 1px solid var(--border); margin-top: 10px; }
+        .ann-header { background: var(--primary); color: #020617; border: 1px solid #fff; margin-top: 10px; display: none; }
         
         .header-titles { display: grid; grid-template-columns: 2fr 1fr 1fr; width: 100%; font-size: 0.75rem; }
-        
-        .slide-wrapper { max-height: 2000px; overflow: hidden; transition: max-height 0.4s ease-out; background: #0f172a; border-radius: 0 0 12px 12px; width: 100%; border: 1px solid #1e293b; border-top: none; margin-bottom: 10px; }
+        .slide-wrapper { max-height: 2000px; overflow: hidden; transition: max-height 0.4s ease-out; background: var(--card-bg); border-radius: 0 0 12px 12px; width: 100%; border: 1px solid var(--border); border-top: none; margin-bottom: 10px; }
         .collapsed + .slide-wrapper { max-height: 0; border: none; visibility: hidden; }
         .arrow-icon { transition: 0.3s; font-size: 0.7rem; }
         .collapsed .arrow-icon { transform: rotate(-90deg); }
 
-        /* Table Styling */
         table { width: 100%; border-collapse: collapse; table-layout: fixed; }
-        td { padding: 12px 20px; border-bottom: 1px solid #1e293b; font-size: 0.85rem; color: #cbd5e1; word-break: break-all; }
+        td { padding: 12px 20px; border-bottom: 1px solid var(--border); font-size: 0.85rem; color: var(--text); word-break: break-all; }
         tr { display: grid; grid-template-columns: 2fr 1fr 1fr; align-items: center; }
-        .highlight-row { background: rgba(56, 189, 248, 0.2) !important; border-left: 4px solid #38bdf8; }
+        .highlight-row { background: rgba(56, 189, 248, 0.2) !important; border-left: 4px solid var(--primary); }
 
-        /* Announcement Content Inside Slide */
-        #announcement-box {
-            background: #020617; color: #cbd5e1; padding: 15px;
-            font-size: 0.85rem; white-space: pre-wrap; line-height: 1.5;
-            font-family: 'Inter', sans-serif; word-break: break-word;
+        #announcement-box { background: var(--bg); color: var(--text); padding: 15px; font-size: 0.85rem; white-space: pre-wrap; line-height: 1.5; font-family: monospace; }
+        #copy-ann-btn { width: calc(100% - 30px); margin: 0 15px 15px 15px; padding: 12px; background: var(--primary); color: #fff; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; }
+
+        /* Back to Top */
+        #back-to-top {
+            position: fixed; bottom: 85px; right: 20px; background: var(--primary); color: white;
+            width: 45px; height: 45px; border-radius: 50%; display: none; align-items: center; justify-content: center;
+            font-size: 1.2rem; cursor: pointer; border: none; z-index: 5000; box-shadow: 0 4px 10px rgba(0,0,0,0.3);
         }
-        #copy-ann-btn { width: calc(100% - 30px); margin: 0 15px 15px 15px; padding: 12px; background: #38bdf8; color: #020617; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; }
 
-        footer { width: 100%; padding: 15px 20px 25px 20px; background: #020617; display: flex; justify-content: space-between; align-items: center; border-top: 1px solid #1e293b; flex-shrink: 0; }
-        .mgmt-btn { padding: 12px 30px; background: #0f172a; color: #ef4444; border: 2px solid #ef4444; border-radius: 10px; font-weight: 800; cursor: pointer; text-decoration: none; font-size: 0.85rem; transition: 0.3s;}
-        .mgmt-btn:hover { background: #ef4444; color: white; }
+        footer { width: 100%; padding: 15px 20px 25px 20px; background: var(--bg); display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--border); margin-top: auto; }
+        .mgmt-btn { padding: 12px 30px; background: var(--card-bg); color: var(--accent); border: 2px solid var(--accent); border-radius: 10px; font-weight: 800; cursor: pointer; font-size: 0.85rem; transition: 0.3s;}
+        .mgmt-btn:hover { background: var(--accent); color: white; }
+
+        /* Mobile */
+        @media (max-width: 650px) {
+            .stats-bar { flex-direction: column; gap: 15px; text-align: center; }
+            .top-three-grid { grid-template-columns: 1fr; }
+            .header-titles, tr { grid-template-columns: 1.2fr 0.9fr 0.9fr; }
+            .actions { width: 100%; justify-content: center; flex-wrap: wrap; }
+            .actions button { flex: 1; min-width: 100px; font-size: 0.65rem; }
+            td { padding: 10px; font-size: 0.75rem; }
+            footer { flex-direction: column; gap: 15px; }
+        }
     </style>
 </head>
-<body>
+<body onscroll="handleScroll()">
 
     <div id="success-toast">Log Saved to Management Portal! 💾</div>
+    <button id="back-to-top" onclick="window.scrollTo({top: 0, behavior: 'smooth'})">↑</button>
 
     <div id="login-overlay">
         <div class="login-box">
-            <h2 style="color: #ef4444; margin-top: 0;">Admin Login</h2>
+            <h2 style="color: var(--accent); margin-top: 0;">Admin Login</h2>
             <input type="text" id="user-input" placeholder="Username">
             <input type="password" id="pass-input" placeholder="Password">
             <button onclick="checkLogin()">UNLOCK PORTAL</button>
-            <button onclick="closeLogin()" style="background:transparent; color:#94a3b8; font-size:0.7rem;">Cancel</button>
-            <div id="login-error">Invalid Credentials</div>
+            <button onclick="closeLogin()" style="background:transparent; color:var(--sub-text); font-size:0.7rem;">Cancel</button>
+            <div id="login-error" style="color:var(--accent); display:none; margin-top:10px;">Invalid Credentials</div>
         </div>
     </div>
 
     <header>
+        <button class="theme-toggle" onclick="toggleTheme()" id="theme-btn">🌙</button>
         <img src="https://i.postimg.cc/dtHffs97/75cb50d9389d910e9781b944fceed68b.webp" alt="Logo" class="logo">
         <h1>Weekly Business Logs</h1>
     </header>
 
     <div class="content-area">
-        <div id="drop-zone">
+        <div id="drop-zone" onclick="document.getElementById('file-input').click()">
             <p>Drag & Drop CSV here or click to browse</p>
             <input type="file" id="file-input" accept=".csv" hidden>
         </div>
 
         <div id="table-container" style="display: none; width: 100%;">
-            
             <div id="top-three-banner">
                 <h3 style="margin: 0; color: #a855f7; font-size: 0.8rem; text-align: center;">🏆 TOP BUSINESS PERFORMERS</h3>
                 <div class="top-three-grid" id="top-three-content"></div>
@@ -166,8 +191,8 @@
             <div class="stats-bar">
                 <div class="totals"><span id="staff-count">Total: 0</span> | <span id="total-hours-sum">0 hrs</span></div>
                 <div class="actions">
-                    <button id="copy-btn">Copy Raw Logs 📋</button>
-                    <button id="save-btn" onclick="triggerManualSave()">Save to Portal 💾</button>
+                    <button id="copy-btn">Copy Logs 📋</button>
+                    <button id="save-btn" onclick="triggerManualSave()">Save Portal 💾</button>
                     <button id="reset-btn" onclick="location.reload()">Clear 🗑️</button>
                 </div>
             </div>
@@ -192,7 +217,7 @@
     </div>
 
     <footer>
-        <span style="font-size: 0.65rem; color: #475569;">SACRP BUSINESS MANAGEMENT</span>
+        <span style="font-size: 0.65rem; color: var(--sub-text);">SACRP BUSINESS MANAGEMENT</span>
         <button class="mgmt-btn" onclick="openLogin()">🔓 PORTAL</button>
     </footer>
 
@@ -204,16 +229,27 @@
         const fileInput = document.getElementById('file-input');
         const dropZone = document.getElementById('drop-zone');
 
+        function toggleTheme() {
+            document.body.classList.toggle('light-mode');
+            const btn = document.getElementById('theme-btn');
+            btn.innerText = document.body.classList.contains('light-mode') ? '☀️' : '🌙';
+        }
+
+        function handleScroll() {
+            const btn = document.getElementById('back-to-top');
+            btn.style.display = (window.scrollY > 300) ? 'flex' : 'none';
+        }
+
         function openLogin() { document.getElementById('login-overlay').style.display = 'flex'; }
         function closeLogin() { document.getElementById('login-overlay').style.display = 'none'; }
         
         function checkLogin() {
-            if(document.getElementById('user-input').value === "ADMIN" && document.getElementById('pass-input').value === "ADMIN") {
-                window.location.href = "management.html";
+            if(document.getElementById('user-input').value.toUpperCase() === "ADMIN" && document.getElementById('pass-input').value === "ADMIN") {
+                alert("Access Granted. Redirecting to Management History...");
+                // In a real scenario, redirect here.
             } else { document.getElementById('login-error').style.display = 'block'; }
         }
 
-        dropZone.onclick = () => fileInput.click();
         fileInput.onchange = (e) => {
             const file = e.target.files[0];
             if(!file) return;
@@ -234,9 +270,10 @@
             
             const toast = document.getElementById('success-toast');
             toast.classList.add('show');
-            document.getElementById('save-btn').disabled = true;
-            document.getElementById('save-btn').style.opacity = "0.5";
-            document.getElementById('save-btn').innerText = "Saved ✅";
+            const saveBtn = document.getElementById('save-btn');
+            saveBtn.disabled = true;
+            saveBtn.style.opacity = "0.5";
+            saveBtn.innerText = "Saved ✅";
             setTimeout(() => toast.classList.remove('show'), 3000);
         }
 
@@ -245,12 +282,11 @@
         function filterResults() {
             const query = document.getElementById('search-bar').value.toLowerCase();
             const rows = document.querySelectorAll('tbody tr');
-            
             rows.forEach(row => {
                 const idCell = row.cells[0];
                 const originalText = idCell.getAttribute('data-original');
+                if (!originalText) return;
                 const idText = originalText.toLowerCase();
-
                 if (query === "") {
                     row.style.display = 'grid';
                     row.classList.remove('highlight-row');
@@ -260,7 +296,7 @@
                     row.classList.add('highlight-row');
                     row.closest('.slide-wrapper').previousElementSibling.classList.remove('collapsed');
                     const regex = new RegExp(`(${query})`, 'gi');
-                    idCell.innerHTML = originalText.replace(regex, `<span style="background: #38bdf8; color: #020617; border-radius: 4px; padding: 0 2px;">$1</span>`);
+                    idCell.innerHTML = originalText.replace(regex, `<span style="background: var(--primary); color: #020617; border-radius: 4px; padding: 0 2px;">$1</span>`);
                 } else {
                     row.style.display = 'none';
                 }
@@ -273,6 +309,7 @@
             const bcTable = document.getElementById('bc-table-body');
             const memTable = document.getElementById('member-table-body');
             mgmtTable.innerHTML = ''; bcTable.innerHTML = ''; memTable.innerHTML = '';
+            
             let totalCount = 0, totalMins = 0, allStaff = [], discordText = "**Weekly Business Logs:**\n";
 
             for (let i = 1; i < lines.length; i++) {
@@ -284,32 +321,27 @@
                 const hrs = (mins / 60).toFixed(1);
                 allStaff.push({ id, mins, hrs });
                 
-                const rowHtml = `<tr><td data-original="${id}">${id}</td><td style="color:#94a3b8; font-style: italic;">${keyName}</td><td style="color:#4ade80; font-weight:bold;">${hrs} hrs</td></tr>`;
-                
+                const rowHtml = `<tr><td data-original="${id}">${id}</td><td style="color:var(--sub-text); font-style: italic;">${keyName}</td><td style="color:#22c55e; font-weight:bold;">${hrs} hrs</td></tr>`;
                 const upperKey = keyName.toUpperCase();
-                if (upperKey === "BUSMAN") { mgmtTable.innerHTML += rowHtml; discordText += `• [MGMT] <@${id}> (${keyName}): ${hrs} hrs\n`; }
-                else if (upperKey === "BC") { bcTable.innerHTML += rowHtml; discordText += `• [BC] <@${id}> (${keyName}): ${hrs} hrs\n`; }
-                else { memTable.innerHTML += rowHtml; discordText += `• <@${id}> (${keyName}): ${hrs} hrs\n`; }
+                
+                if (upperKey === "BUSMAN") { mgmtTable.innerHTML += rowHtml; discordText += `• [MGMT] <@${id}>: ${hrs} hrs\n`; }
+                else if (upperKey === "BC") { bcTable.innerHTML += rowHtml; discordText += `• [BC] <@${id}>: ${hrs} hrs\n`; }
+                else { memTable.innerHTML += rowHtml; discordText += `• <@${id}>: ${hrs} hrs\n`; }
+                
                 totalCount++; totalMins += mins;
             }
 
             allStaff.sort((a, b) => b.mins - a.mins);
             const topID = allStaff.length > 0 ? allStaff[0].id : "ID_HERE";
 
-            generatedAnnouncement = `# Admin Work has been Completed
-Feel free to make suggestions in https://discord.com/channels/739604589627572286/1150135582513700875
-and if you need anything, feel free to dm a member of the team or make a https://discord.com/channels/739604589627572286/1148399710382608424 or a https://discord.com/channels/739604589627572286/1148398639207690290
--------------------------------------------------------------------------
-Congratulations to <@${topID}> for having the most amount of hours this week and being our Business Member of The Week which also comes with 7D Elite, DM a member of Business Management for your elite.
-<@&799426295746265109>`;
-
+            generatedAnnouncement = `# Admin Work has been Completed\nFeel free to make suggestions in #suggestions\n-------------------------------------------------------------------------\nCongratulations to <@${topID}> for being Business Member of The Week!\n<@&799426295746265109>`;
             document.getElementById('announcement-box').innerText = generatedAnnouncement;
             document.getElementById('ann-header-btn').style.display = 'flex';
 
             const topThreeContainer = document.getElementById('top-three-content');
             topThreeContainer.innerHTML = '';
             allStaff.slice(0, 3).forEach((staff, index) => {
-                topThreeContainer.innerHTML += `<div class="top-card"><div style="font-size:1.5rem">${['🥇', '🥈', '🥉'][index]}</div><div style="font-size:0.75rem; color:#94a3b8; margin: 5px 0;"><@${staff.id}></div><div style="font-weight:bold; font-size: 1rem; color: #38bdf8;">${staff.hrs} hrs</div></div>`;
+                topThreeContainer.innerHTML += `<div class="top-card"><div style="font-size:1.5rem">${['🥇', '🥈', '🥉'][index]}</div><div style="font-size:0.75rem; color:var(--sub-text); margin: 5px 0;"><@${staff.id}></div><div style="font-weight:bold; font-size: 1rem; color: var(--primary);">${staff.hrs} hrs</div></div>`;
             });
 
             document.getElementById('table-container').style.display = 'block';
@@ -318,7 +350,7 @@ Congratulations to <@${topID}> for having the most amount of hours this week and
             document.getElementById('drop-zone').style.display = 'none';
             document.getElementById('staff-count').innerText = `Total: ${totalCount}`;
             document.getElementById('total-hours-sum').innerText = `${(totalMins/60).toFixed(1)} hrs`;
-            
+
             document.getElementById('copy-btn').onclick = () => {
                 navigator.clipboard.writeText(`${discordText}\n**Summary:**\n• Headcount: ${totalCount}\n• Combined Time: ${(totalMins/60).toFixed(1)} hrs`);
                 alert("Raw Logs Copied!");
