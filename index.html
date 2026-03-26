@@ -11,14 +11,13 @@
             display: flex; flex-direction: column; align-items: center;
         }
 
-        /* Hides scrollbars globally but keeps scrolling active */
-        * {
-            scrollbar-width: none; /* Firefox */
-            -ms-overflow-style: none; /* IE/Edge */
+        /* Prevent layout push and hide scrollbars */
+        * { 
+            box-sizing: border-box; 
+            scrollbar-width: none; 
+            -ms-overflow-style: none; 
         }
-        *::-webkit-scrollbar {
-            display: none; /* Chrome/Safari/Brave */
-        }
+        *::-webkit-scrollbar { display: none; }
 
         header { text-align: center; padding: 20px 0 10px 0; flex-shrink: 0; }
         .logo { width: 100px; border-radius: 50%; border: 2px solid #38bdf8; box-shadow: 0 0 15px rgba(56, 189, 248, 0.3); }
@@ -26,7 +25,7 @@
         
         .content-area {
             flex: 1; width: 100%; max-width: 900px; display: flex; flex-direction: column;
-            align-items: center; overflow-y: auto; padding: 10px; box-sizing: border-box;
+            align-items: center; overflow-y: auto; padding: 10px;
             -webkit-overflow-scrolling: touch;
         }
 
@@ -35,19 +34,7 @@
             border-radius: 20px; background: #0f172a; cursor: pointer; text-align: center; margin: 20px 0; 
         }
 
-        /* Announcement Section Styling */
-        #announcement-container {
-            width: 100%; background: #1e293b; border: 1px solid #38bdf8; border-radius: 12px;
-            padding: 15px; margin-bottom: 15px; display: none; box-sizing: border-box;
-        }
-        #announcement-box {
-            background: #020617; color: #cbd5e1; padding: 12px; border-radius: 8px;
-            font-size: 0.8rem; white-space: pre-wrap; line-height: 1.4; border: 1px solid #334155;
-            margin-top: 10px; font-family: 'Courier New', monospace;
-        }
-        .ann-actions { margin-top: 10px; width: 100%; }
-        #copy-ann-btn { width: 100%; padding: 12px; background: #38bdf8; color: #020617; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; }
-
+        /* Success Toast */
         #success-toast {
             position: fixed; top: 20px; right: 20px; background: #22c55e; color: white;
             padding: 12px 24px; border-radius: 8px; font-weight: bold; transform: translateY(-100px);
@@ -55,6 +42,7 @@
         }
         #success-toast.show { transform: translateY(0); }
 
+        /* Login Styling */
         #login-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(2, 6, 23, 0.95); display: none; 
@@ -66,7 +54,7 @@
         }
         .login-box input {
             width: 100%; padding: 12px; margin: 10px 0; border-radius: 8px; border: 1px solid #1e293b;
-            background: #020617; color: white; box-sizing: border-box; outline: none;
+            background: #020617; color: white; outline: none;
         }
         .login-box button {
             width: 100%; padding: 12px; margin-top: 10px; border-radius: 8px; border: none;
@@ -74,6 +62,7 @@
         }
         #login-error { color: #ef4444; font-size: 0.8rem; margin-top: 10px; display: none; }
 
+        /* Banners and Search */
         #top-three-banner {
             width: 100%; background: linear-gradient(135deg, #1e293b 0%, #3b0764 100%);
             border: 1px solid #a855f7; border-radius: 12px; padding: 15px; margin-bottom: 15px; display: none;
@@ -82,11 +71,11 @@
         .top-card { background: rgba(0,0,0,0.3); padding: 10px; border-radius: 8px; text-align: center; border: 1px solid rgba(255,255,255,0.1); }
 
         #search-container { width: 100%; margin-bottom: 15px; display: none; }
-        #search-bar { width: 100%; padding: 12px; border-radius: 10px; border: 1px solid #334155; background: #0f172a; color: white; box-sizing: border-box; }
+        #search-bar { width: 100%; padding: 12px; border-radius: 10px; border: 1px solid #334155; background: #0f172a; color: white; }
 
         .stats-bar { 
             width: 100%; display: flex; justify-content: space-between; align-items: center; 
-            background: #1e293b; padding: 15px 20px; border-radius: 12px; margin-bottom: 15px; box-sizing: border-box; 
+            background: #1e293b; padding: 15px 20px; border-radius: 12px; margin-bottom: 15px; 
         }
         .totals { font-weight: bold; color: #38bdf8; font-size: 0.95rem; }
         .actions { display: flex; gap: 8px; }
@@ -96,10 +85,15 @@
         #save-btn { background: #22c55e; color: white; }
         #reset-btn { background: #ef4444; color: white; }
 
-        .section-header { padding: 14px 20px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; border-radius: 12px; width: 100%; box-sizing: border-box; margin-bottom: 5px; text-transform: uppercase; font-weight: 900; }
+        /* Section Styling */
+        .section-header { padding: 14px 20px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; border-radius: 12px; width: 100%; margin-bottom: 5px; text-transform: uppercase; font-weight: 900; }
         .mgmt-header { background: linear-gradient(90deg, #0ea5e9 0%, #f97316 100%); color: #fff; border: 1px solid #fff; }
         .bc-header { background: linear-gradient(90deg, #1e293b, #78350f); color: #fbbf24; border: 1px solid #fbbf24; margin-top: 10px; }
         .member-header { background: #1e293b; color: #94a3b8; border: 1px solid #334155; margin-top: 10px; }
+        
+        /* New Announcement Dropdown Style */
+        .ann-header { background: #38bdf8; color: #020617; border: 1px solid #fff; margin-top: 10px; display: none; }
+        
         .header-titles { display: grid; grid-template-columns: 1.5fr 1fr 0.8fr; width: 100%; font-size: 0.75rem; }
         
         .slide-wrapper { max-height: 2000px; overflow: hidden; transition: max-height 0.4s ease-out; background: #0f172a; border-radius: 0 0 12px 12px; width: 100%; border: 1px solid #1e293b; border-top: none; margin-bottom: 10px; }
@@ -107,12 +101,21 @@
         .arrow-icon { transition: 0.3s; font-size: 0.7rem; }
         .collapsed .arrow-icon { transform: rotate(-90deg); }
 
-        table { width: 100%; border-collapse: collapse; }
+        /* Table Styling */
+        table { width: 100%; border-collapse: collapse; table-layout: fixed; }
         td { padding: 12px 20px; border-bottom: 1px solid #1e293b; font-size: 0.8rem; color: #cbd5e1; word-break: break-all; }
         tr { display: grid; grid-template-columns: 1.5fr 1fr 0.8fr; align-items: center; }
         .highlight-row { background: rgba(56, 189, 248, 0.2) !important; border-left: 4px solid #38bdf8; }
 
-        footer { width: 100%; padding: 15px 20px 25px 20px; background: #020617; display: flex; justify-content: space-between; align-items: center; border-top: 1px solid #1e293b; box-sizing: border-box;}
+        /* Announcement Content Inside Slide */
+        #announcement-box {
+            background: #020617; color: #cbd5e1; padding: 15px;
+            font-size: 0.8rem; white-space: pre-wrap; line-height: 1.4;
+            font-family: 'Courier New', monospace; word-break: break-word;
+        }
+        #copy-ann-btn { width: calc(100% - 30px); margin: 0 15px 15px 15px; padding: 12px; background: #38bdf8; color: #020617; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; }
+
+        footer { width: 100%; padding: 15px 20px 25px 20px; background: #020617; display: flex; justify-content: space-between; align-items: center; border-top: 1px solid #1e293b; flex-shrink: 0; }
         .mgmt-btn { padding: 12px 30px; background: #0f172a; color: #ef4444; border: 2px solid #ef4444; border-radius: 10px; font-weight: 800; cursor: pointer; text-decoration: none; font-size: 0.85rem; transition: 0.3s;}
         .mgmt-btn:hover { background: #ef4444; color: white; }
     </style>
@@ -145,14 +148,6 @@
 
         <div id="table-container" style="display: none; width: 100%;">
             
-            <div id="announcement-container">
-                <h3 style="margin: 0; color: #38bdf8; font-size: 0.8rem;">📢 GENERATED BUSINESS ANNOUNCEMENT</h3>
-                <div id="announcement-box"></div>
-                <div class="ann-actions">
-                    <button id="copy-ann-btn">Copy Announcement 📋</button>
-                </div>
-            </div>
-
             <div id="top-three-banner">
                 <h3 style="margin: 0; color: #a855f7; font-size: 0.8rem; text-align: center;">🏆 TOP BUSINESS PERFORMERS</h3>
                 <div class="top-three-grid" id="top-three-content"></div>
@@ -170,12 +165,23 @@
                     <button id="reset-btn" onclick="location.reload()">Clear 🗑️</button>
                 </div>
             </div>
+
             <div class="section-header mgmt-header" onclick="toggleSection(this)"><div class="header-titles"><span>Management (ID)</span><span>KEY</span><span>Time</span></div><span class="arrow-icon">▼</span></div>
             <div class="slide-wrapper"><table><tbody id="mgmt-table-body"></tbody></table></div>
+
             <div class="section-header bc-header" onclick="toggleSection(this)"><div class="header-titles"><span>Coordination (ID)</span><span>KEY</span><span>Time</span></div><span class="arrow-icon">▼</span></div>
             <div class="slide-wrapper"><table><tbody id="bc-table-body"></tbody></table></div>
+
             <div class="section-header member-header collapsed" onclick="toggleSection(this)"><div class="header-titles"><span>Members (ID)</span><span>KEY</span><span>Time</span></div><span class="arrow-icon">▼</span></div>
             <div class="slide-wrapper"><table><tbody id="member-table-body"></tbody></table></div>
+
+            <div id="ann-header-btn" class="section-header ann-header collapsed" onclick="toggleSection(this)">
+                <span>📢 GENERATE BUSINESS ANNOUNCEMENT</span><span class="arrow-icon">▼</span>
+            </div>
+            <div class="slide-wrapper">
+                <div id="announcement-box"></div>
+                <button id="copy-ann-btn">Copy Announcement Template 📋</button>
+            </div>
         </div>
     </div>
 
@@ -284,7 +290,7 @@
             allStaff.sort((a, b) => b.mins - a.mins);
             const topID = allStaff.length > 0 ? allStaff[0].id : "ID_HERE";
 
-            // Generate the Announcement Template
+            // Set Announcement Content
             generatedAnnouncement = `# Admin Work has been Completed
 Feel free to make suggestions in https://discord.com/channels/739604589627572286/1150135582513700875
 and if you need anything, feel free to dm a member of the team or make a https://discord.com/channels/739604589627572286/1148399710382608424 or a https://discord.com/channels/739604589627572286/1148398639207690290
@@ -293,7 +299,7 @@ Congratulations to <@${topID}> for having the most amount of hours this week and
 <@&799426295746265109>`;
 
             document.getElementById('announcement-box').innerText = generatedAnnouncement;
-            document.getElementById('announcement-container').style.display = 'block';
+            document.getElementById('ann-header-btn').style.display = 'flex';
 
             const topThreeContainer = document.getElementById('top-three-content');
             topThreeContainer.innerHTML = '';
