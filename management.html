@@ -18,15 +18,18 @@
         /* Archive Styling */
         .archive-list { margin-top: 15px; }
         .archive-item { 
-            background: #1e293b; padding: 12px; border-radius: 8px; margin-bottom: 10px; 
-            display: flex; justify-content: space-between; align-items: center;
+            background: #1e293b; padding: 15px; border-radius: 8px; margin-bottom: 15px; 
+            border-left: 4px solid #38bdf8;
         }
-        .archive-info { font-size: 0.85rem; }
-        .archive-date { color: #a855f7; font-weight: bold; display: block; }
-        .view-btn { background: #38bdf8; color: #020617; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 0.75rem; font-weight: bold; }
-        .delete-btn { background: #ef4444; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 0.75rem; margin-left: 5px; }
+        .archive-header { margin-bottom: 10px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 5px; }
+        .archive-date { color: #a855f7; font-weight: bold; font-size: 0.9rem; text-transform: uppercase; }
+        .archive-filename { display: block; font-size: 0.8rem; color: #94a3b8; margin-top: 2px; }
+        
+        .archive-actions { display: flex; gap: 10px; margin-top: 10px; }
+        .view-btn { background: #38bdf8; color: #020617; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer; font-size: 0.8rem; font-weight: bold; flex: 1; }
+        .delete-btn { background: #ef4444; color: white; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer; font-size: 0.8rem; font-weight: bold; }
 
-        .action-btn { display: block; width: 100%; padding: 10px; margin-top: 15px; background: #1e293b; color: #a855f7; text-align: center; border-radius: 6px; border: 1px solid #a855f7; font-weight: bold; cursor: pointer; }
+        .action-btn { display: block; width: 100%; padding: 10px; margin-top: 15px; background: #1e293b; color: #a855f7; text-align: center; border-radius: 6px; border: 1px solid #a855f7; font-weight: bold; cursor: pointer; text-decoration: none; }
     </style>
 </head>
 <body>
@@ -41,17 +44,10 @@
     <div class="management-grid">
         <div class="card" style="grid-column: span 2; border-color: #38bdf8;">
             <h2 style="color: #38bdf8;">📁 Saved Log History</h2>
-            <p style="font-size: 0.8rem; color: #64748b;">Every CSV you upload on the main page is automatically stored here.</p>
+            <p style="font-size: 0.8rem; color: #64748b;">Every CSV you upload on the main page is automatically stored here by date.</p>
             <div id="archive-container" class="archive-list">
                 </div>
             <button class="action-btn" style="border-color: #ef4444; color: #ef4444; margin-top: 20px; width: auto;" onclick="clearAllLogs()">Wipe All History ⚠️</button>
-        </div>
-
-        <div class="card" style="border-color: #ef4444;">
-            <h2 style="color: #ef4444;">Staff Strike Tracker</h2>
-            <p>Recent strikes issued to business members.</p>
-            <div id="strike-summary"></div>
-            <a href="#" class="action-btn" style="border-color: #ef4444;">Manage Strikes</a>
         </div>
     </div>
 
@@ -65,44 +61,49 @@
             const logs = JSON.parse(localStorage.getItem('businessLogHistory')) || [];
 
             if (logs.length === 0) {
-                container.innerHTML = '<p style="text-align:center; opacity:0.5;">No saved logs found.</p>';
+                container.innerHTML = '<p style="text-align:center; opacity:0.5; padding: 20px;">No saved logs found. Upload a CSV on the main page to see it here.</p>';
                 return;
             }
 
             container.innerHTML = '';
-            logs.reverse().forEach((log, index) => {
+            // We use reverse() to show newest logs at the top
+            logs.slice().reverse().forEach((log, index) => {
+                // Adjusting index for deletion since we reversed the display
+                const actualIndex = logs.length - 1 - index;
+                
                 const div = document.createElement('div');
                 div.className = 'archive-item';
                 div.innerHTML = `
-                    <div class="archive-info">
-                        <span class="archive-date">${log.date}</span>
-                        <span style="opacity:0.7">${log.fileName}</span>
+                    <div class="archive-header">
+                        <span class="archive-date">📅 Stored on: ${log.date}</span>
+                        <span class="archive-filename">File: ${log.fileName}</span>
                     </div>
-                    <div>
-                        <button class="view-btn" onclick="viewLog(${index})">Download CSV</button>
-                        <button class="delete-btn" onclick="deleteLog(${index})">Delete</button>
+                    <div class="archive-actions">
+                        <button class="view-btn" onclick="downloadLog(${actualIndex})">Download CSV 📥</button>
+                        <button class="delete-btn" onclick="deleteLog(${actualIndex})">Delete 🗑️</button>
                     </div>
                 `;
                 container.appendChild(div);
             });
         }
 
-        function viewLog(index) {
+        function downloadLog(index) {
             const logs = JSON.parse(localStorage.getItem('businessLogHistory')) || [];
-            const log = logs.reverse()[index];
+            const log = logs[index];
             const blob = new Blob([log.rawData], { type: 'text/csv' });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
             a.download = `RESTORED_${log.fileName}`;
             a.click();
+            URL.revokeObjectURL(url);
         }
 
         function deleteLog(index) {
             if(!confirm("Delete this log permanently?")) return;
             let logs = JSON.parse(localStorage.getItem('businessLogHistory')) || [];
-            logs.reverse().splice(index, 1);
-            localStorage.setItem('businessLogHistory', JSON.stringify(logs.reverse()));
+            logs.splice(index, 1);
+            localStorage.setItem('businessLogHistory', JSON.stringify(logs));
             displayArchive();
         }
 
