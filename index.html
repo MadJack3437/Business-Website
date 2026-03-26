@@ -59,12 +59,21 @@
         .member-header { background: #1e293b; color: #94a3b8; border: 1px solid #334155; margin-top: 10px; }
 
         .header-titles { display: grid; grid-template-columns: 2fr 1fr; width: 100%; font-size: 0.8rem; }
-        .slide-wrapper { max-height: 2000px; overflow: hidden; transition: max-height 0.4s ease-out; background: #0f172a; border-radius: 0 0 12px 12px; width: 100%; border: 1px solid #1e293b; border-top: none; }
+        
+        /* Dropdown Animation Logic */
+        .slide-wrapper { 
+            max-height: 2000px; overflow: hidden; transition: max-height 0.4s ease-out; 
+            background: #0f172a; border-radius: 0 0 12px 12px; width: 100%; 
+            border: 1px solid #1e293b; border-top: none; margin-bottom: 10px;
+        }
         .collapsed + .slide-wrapper { max-height: 0; border: none; }
+        .arrow-icon { transition: 0.3s; font-size: 0.7rem; }
+        .collapsed .arrow-icon { transform: rotate(-90deg); }
 
         table { width: 100%; border-collapse: collapse; }
         td { padding: 12px 20px; border-bottom: 1px solid #1e293b; font-size: 0.85rem; color: #cbd5e1; }
         tr { display: grid; grid-template-columns: 2fr 1fr; align-items: center; }
+        .highlight-row { background: rgba(56, 189, 248, 0.2) !important; border-left: 4px solid #38bdf8; }
 
         footer { width: 100%; padding: 15px 20px 25px 20px; background: #020617; display: flex; justify-content: space-between; align-items: center; border-top: 1px solid #1e293b; }
         .mgmt-btn { padding: 12px 30px; background: #0f172a; color: #ef4444; border: 2px solid #ef4444; border-radius: 10px; font-weight: 800; cursor: pointer; text-decoration: none; font-size: 0.85rem; }
@@ -104,18 +113,21 @@
                 </div>
             </div>
 
-            <div class="section-header mgmt-header" onclick="this.classList.toggle('collapsed')">
+            <div class="section-header mgmt-header" onclick="toggleSection(this)">
                 <div class="header-titles"><span>Discord ID (Management)</span><span>Time</span></div>
+                <span class="arrow-icon">▼</span>
             </div>
             <div class="slide-wrapper"><table><tbody id="mgmt-table-body"></tbody></table></div>
 
-            <div class="section-header bc-header" onclick="this.classList.toggle('collapsed')">
+            <div class="section-header bc-header" onclick="toggleSection(this)">
                 <div class="header-titles"><span>Discord ID (Coordination)</span><span>Time</span></div>
+                <span class="arrow-icon">▼</span>
             </div>
             <div class="slide-wrapper"><table><tbody id="bc-table-body"></tbody></table></div>
 
-            <div class="section-header member-header collapsed" onclick="this.classList.toggle('collapsed')">
+            <div class="section-header member-header collapsed" onclick="toggleSection(this)">
                 <div class="header-titles"><span>Discord ID (Members)</span><span>Time</span></div>
+                <span class="arrow-icon">▼</span>
             </div>
             <div class="slide-wrapper"><table><tbody id="member-table-body"></tbody></table></div>
         </div>
@@ -138,12 +150,30 @@
             reader.readAsText(e.target.files[0]);
         };
 
+        function toggleSection(el) {
+            el.classList.toggle('collapsed');
+        }
+
         function filterResults() {
             const query = document.getElementById('search-bar').value.toLowerCase();
             const rows = document.querySelectorAll('tbody tr');
+            
             rows.forEach(row => {
                 const idText = row.cells[0].innerText.toLowerCase();
-                row.style.display = idText.includes(query) ? 'grid' : 'none';
+                if (query === "") {
+                    row.style.display = 'grid';
+                    row.classList.remove('highlight-row');
+                } else if (idText.includes(query)) {
+                    row.style.display = 'grid';
+                    row.classList.add('highlight-row');
+                    // Automatically expand parent section if it's collapsed during search
+                    const wrapper = row.closest('.slide-wrapper');
+                    const header = wrapper.previousElementSibling;
+                    header.classList.remove('collapsed');
+                } else {
+                    row.style.display = 'none';
+                    row.classList.remove('highlight-row');
+                }
             });
         }
 
@@ -170,7 +200,7 @@
 
                 const rowHtml = `<tr><td>${id}</td><td style="color:#4ade80; font-weight:bold;">${hrs} hrs</td></tr>`;
 
-                // Global Top Member Check (any category)
+                // GLOBAL Top Member Logic (Finds highest hours across all staff)
                 if (mins > maxMins) { 
                     maxMins = mins; 
                     topMention = `<@${id}> — ${hrs} hrs`; 
@@ -195,7 +225,6 @@
             document.getElementById('staff-count').innerText = `Total: ${totalCount}`;
             document.getElementById('total-hours-sum').innerText = `${(totalMins/60).toFixed(1)} hrs`;
             
-            // Set Top Business Member
             document.getElementById('top-member-info').innerHTML = topMention || "N/A";
             document.getElementById('top-member-banner').style.display = maxMins > 0 ? 'block' : 'none';
 
