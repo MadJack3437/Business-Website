@@ -46,6 +46,13 @@
         
         .totals { font-weight: bold; color: #ef4444; font-size: 0.95rem; }
 
+        .mgmt-actions { width: 100%; display: flex; gap: 10px; margin-bottom: 15px; }
+        .mgmt-actions button { flex: 1; padding: 10px; border-radius: 8px; font-weight: bold; cursor: pointer; border: none; font-size: 0.8rem; }
+        
+        .btn-blue { background: #38bdf8; color: #020617; }
+        .btn-green { background: #22c55e; color: white; }
+        .btn-red-outline { background: transparent; border: 1px solid #ef4444 !important; color: #ef4444; }
+
         .log-card {
             width: 100%; background: #0f172a; border: 1px solid #1e293b; 
             border-radius: 12px; padding: 15px; margin-bottom: 10px; box-sizing: border-box;
@@ -53,9 +60,6 @@
         .log-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
         .log-date { font-weight: bold; color: #f87171; }
         
-        .btn-red { background: #b91c1c; color: white; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer; font-size: 0.75rem; font-weight: bold; transition: 0.2s; }
-        .btn-red:hover { background: #ef4444; transform: scale(1.05); }
-
         footer { 
             width: 100%; padding: 15px 20px 25px 20px; background: #020617; 
             display: flex; justify-content: space-between; align-items: center;
@@ -64,11 +68,7 @@
         .back-btn { padding: 12px 30px; background: #0f172a; color: #ef4444; border: 2px solid #ef4444; border-radius: 10px; font-weight: 800; cursor: pointer; text-decoration: none; font-size: 0.85rem; order: 2; transition: 0.3s;}
         .back-btn:hover { background: #ef4444; color: #020617; }
         
-        .powered-by {
-            font-size: 0.65rem; color: #475569; text-transform: uppercase; 
-            letter-spacing: 1px; font-weight: 600; order: 1;
-        }
-
+        .powered-by { font-size: 0.65rem; color: #475569; text-transform: uppercase; letter-spacing: 1px; font-weight: 600; order: 1; }
         .match-highlight { color: #f87171; font-weight: bold; }
         .search-results-box { margin-top:8px; padding:8px; border-top:1px solid #1e293b; background: rgba(239, 68, 68, 0.05); border-radius: 6px; }
     </style>
@@ -93,9 +93,15 @@
 
         <div class="stats-bar">
             <div class="totals">
-                <span id="saved-logs-count">Saved Reports: 0</span> | <span id="grand-total-hours">Lifetime: 0 hrs</span>
+                <span id="saved-logs-count">Reports: 0</span> | <span id="grand-total-hours">Lifetime: 0 hrs</span>
             </div>
-            <button class="btn-red" onclick="clearHistory()">Wipe History ⚠️</button>
+            <button class="btn-red-outline" style="padding: 5px 10px; font-size: 0.7rem;" onclick="clearHistory()">Wipe All ⚠️</button>
+        </div>
+
+        <div class="mgmt-actions">
+            <button class="btn-blue" onclick="downloadBackup()">Download Backup 📥</button>
+            <button class="btn-green" onclick="document.getElementById('import-file').click()">Restore History 📤</button>
+            <input type="file" id="import-file" accept=".json" style="display:none" onchange="importBackup(this)">
         </div>
 
         <div id="logs-container" style="width: 100%;"></div>
@@ -121,47 +127,36 @@
             let currentMVPMins = -1;
             let currentMVPName = "";
 
-            // We process the logs to get the lifetime total REGARDLESS of search
             logs.forEach(log => {
                 const rows = log.rawData.trim().split(/\r?\n/);
                 for (let i = 1; i < rows.length; i++) {
                     const cols = rows[i].split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
                     if (cols.length < 4) continue;
-                    const mins = parseInt(cols[3].replace(/"/g, '')) || 0;
-                    grandTotalMins += mins;
+                    grandTotalMins += parseInt(cols[3].replace(/"/g, '')) || 0;
                 }
             });
 
-            // Display logs in reverse (newest first)
             [...logs].reverse().forEach((log, index) => {
                 const rows = log.rawData.trim().split(/\r?\n/);
-                let reportMins = 0;
-                let reportTopMins = -1;
-                let reportTopMember = "";
-                let foundInSearch = false;
-                let searchMatchDetails = "";
+                let reportMins = 0, reportTopMins = -1, reportTopMember = "";
+                let foundInSearch = false, searchMatchDetails = "";
 
                 for (let i = 1; i < rows.length; i++) {
                     const cols = rows[i].split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
                     if (cols.length < 4) continue;
-
                     const name = cols[0].replace(/["~]/g, '').trim();
                     const id = cols[1].replace(/"/g, '').trim();
                     const mins = parseInt(cols[3].replace(/"/g, '')) || 0;
-                    
                     reportMins += mins;
 
                     if (mins > reportTopMins) {
                         reportTopMins = mins;
                         reportTopMember = `${name} (${(mins/60).toFixed(1)} hrs)`;
                     }
-
-                    // Set Overall MVP based on the VERY newest log
                     if (index === 0 && mins > currentMVPMins) {
                         currentMVPMins = mins;
                         currentMVPName = `${name} (${id}) — ${(mins/60).toFixed(1)} hrs`;
                     }
-
                     if (searchTerm && (name.toLowerCase().includes(searchTerm) || id.includes(searchTerm))) {
                         foundInSearch = true;
                         searchMatchDetails += `• ${name}: <span class="match-highlight">${(mins/60).toFixed(1)} hrs</span><br>`;
@@ -186,20 +181,42 @@
                 }
             });
 
-            if (logs.length === 0) {
-                container.innerHTML = `<p style="text-align:center; color:#64748b; margin-top:20px;">No data saved yet. Upload a CSV in the Staff Logs page.</p>`;
-            } else if (container.innerHTML === '' && searchTerm) {
-                container.innerHTML = `<p style="text-align:center; color:#64748b; margin-top:20px;">No staff found matching "${searchTerm}"</p>`;
-            }
-
             topBanner.style.display = currentMVPName ? 'block' : 'none';
             topInfo.innerText = currentMVPName || "No data saved yet";
             logCountDisp.innerText = `Reports: ${logs.length}`;
             totalHrsDisp.innerText = `Lifetime: ${(grandTotalMins/60).toFixed(1)} hrs`;
         }
 
+        function downloadBackup() {
+            const data = localStorage.getItem('businessLogHistory');
+            if (!data || data === "[]") return alert("No history to backup!");
+            const blob = new Blob([data], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `Business_Logs_Backup_${new Date().toLocaleDateString().replace(/\//g, '-')}.json`;
+            a.click();
+        }
+
+        function importBackup(input) {
+            const file = input.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    try {
+                        const importedData = JSON.parse(e.target.result);
+                        if (confirm("This will overwrite your current local history. Continue?")) {
+                            localStorage.setItem('businessLogHistory', JSON.stringify(importedData));
+                            location.reload();
+                        }
+                    } catch (err) { alert("Invalid backup file."); }
+                };
+                reader.readAsText(file);
+            }
+        }
+
         function clearHistory() {
-            if (confirm("⚠️ DANGER: This will permanently erase ALL saved business logs. This cannot be undone. Proceed?")) {
+            if (confirm("⚠️ Permanent Wipe: This deletes all saved logs. Proceed?")) {
                 localStorage.removeItem('businessLogHistory');
                 location.reload();
             }
