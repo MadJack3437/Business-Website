@@ -35,6 +35,19 @@
             border-radius: 20px; background: #0f172a; cursor: pointer; text-align: center; margin: 20px 0; 
         }
 
+        /* Announcement Section Styling */
+        #announcement-container {
+            width: 100%; background: #1e293b; border: 1px solid #38bdf8; border-radius: 12px;
+            padding: 15px; margin-bottom: 15px; display: none; box-sizing: border-box;
+        }
+        #announcement-box {
+            background: #020617; color: #cbd5e1; padding: 12px; border-radius: 8px;
+            font-size: 0.8rem; white-space: pre-wrap; line-height: 1.4; border: 1px solid #334155;
+            margin-top: 10px; font-family: 'Courier New', monospace;
+        }
+        .ann-actions { margin-top: 10px; width: 100%; }
+        #copy-ann-btn { width: 100%; padding: 12px; background: #38bdf8; color: #020617; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; }
+
         #success-toast {
             position: fixed; top: 20px; right: 20px; background: #22c55e; color: white;
             padding: 12px 24px; border-radius: 8px; font-weight: bold; transform: translateY(-100px);
@@ -131,17 +144,28 @@
         </div>
 
         <div id="table-container" style="display: none; width: 100%;">
+            
+            <div id="announcement-container">
+                <h3 style="margin: 0; color: #38bdf8; font-size: 0.8rem;">📢 GENERATED BUSINESS ANNOUNCEMENT</h3>
+                <div id="announcement-box"></div>
+                <div class="ann-actions">
+                    <button id="copy-ann-btn">Copy Announcement 📋</button>
+                </div>
+            </div>
+
             <div id="top-three-banner">
                 <h3 style="margin: 0; color: #a855f7; font-size: 0.8rem; text-align: center;">🏆 TOP BUSINESS PERFORMERS</h3>
                 <div class="top-three-grid" id="top-three-content"></div>
             </div>
+            
             <div id="search-container">
                 <input type="text" id="search-bar" placeholder="Search by Discord ID..." onkeyup="filterResults()">
             </div>
+            
             <div class="stats-bar">
                 <div class="totals"><span id="staff-count">Total: 0</span> | <span id="total-hours-sum">0 hrs</span></div>
                 <div class="actions">
-                    <button id="copy-btn">Copy Logs 📋</button>
+                    <button id="copy-btn">Copy Raw Logs 📋</button>
                     <button id="save-btn" onclick="triggerManualSave()">Save to Portal 💾</button>
                     <button id="reset-btn" onclick="location.reload()">Clear 🗑️</button>
                 </div>
@@ -163,6 +187,7 @@
     <script>
         let currentFileData = null;
         let currentFileName = "";
+        let generatedAnnouncement = "";
 
         const fileInput = document.getElementById('file-input');
         const dropZone = document.getElementById('drop-zone');
@@ -221,11 +246,7 @@
                 } else if (idText.includes(query)) {
                     row.style.display = 'grid';
                     row.classList.add('highlight-row');
-                    
-                    // Force open section to reveal result
                     row.closest('.slide-wrapper').previousElementSibling.classList.remove('collapsed');
-
-                    // Highlight logic
                     const regex = new RegExp(`(${query})`, 'gi');
                     idCell.innerHTML = originalText.replace(regex, `<span style="background: #38bdf8; color: #020617; border-radius: 4px; padding: 0 2px;">$1</span>`);
                 } else {
@@ -251,7 +272,6 @@
                 const hrs = (mins / 60).toFixed(1);
                 allStaff.push({ id, mins, hrs });
                 
-                // Set data-original attribute on the ID cell for safe highlighting
                 const rowHtml = `<tr><td data-original="${id}">${id}</td><td style="color:#94a3b8; font-style: italic;">${keyName}</td><td style="color:#4ade80; font-weight:bold;">${hrs} hrs</td></tr>`;
                 
                 const upperKey = keyName.toUpperCase();
@@ -262,6 +282,19 @@
             }
 
             allStaff.sort((a, b) => b.mins - a.mins);
+            const topID = allStaff.length > 0 ? allStaff[0].id : "ID_HERE";
+
+            // Generate the Announcement Template
+            generatedAnnouncement = `# Admin Work has been Completed
+Feel free to make suggestions in https://discord.com/channels/739604589627572286/1150135582513700875
+and if you need anything, feel free to dm a member of the team or make a https://discord.com/channels/739604589627572286/1148399710382608424 or a https://discord.com/channels/739604589627572286/1148398639207690290
+-------------------------------------------------------------------------
+Congratulations to <@${topID}> for having the most amount of hours this week and being our Business Member of The Week which also comes with 7D Elite, DM a member of Business Management for your elite.
+<@&799426295746265109>`;
+
+            document.getElementById('announcement-box').innerText = generatedAnnouncement;
+            document.getElementById('announcement-container').style.display = 'block';
+
             const topThreeContainer = document.getElementById('top-three-content');
             topThreeContainer.innerHTML = '';
             allStaff.slice(0, 3).forEach((staff, index) => {
@@ -274,9 +307,15 @@
             document.getElementById('drop-zone').style.display = 'none';
             document.getElementById('staff-count').innerText = `Total: ${totalCount}`;
             document.getElementById('total-hours-sum').innerText = `${(totalMins/60).toFixed(1)} hrs`;
+            
             document.getElementById('copy-btn').onclick = () => {
                 navigator.clipboard.writeText(`${discordText}\n**Summary:**\n• Headcount: ${totalCount}\n• Combined Time: ${(totalMins/60).toFixed(1)} hrs`);
-                alert("Logs & Summary Copied!");
+                alert("Raw Logs Copied!");
+            };
+
+            document.getElementById('copy-ann-btn').onclick = () => {
+                navigator.clipboard.writeText(generatedAnnouncement);
+                alert("Announcement Template Copied!");
             };
         }
     </script>
