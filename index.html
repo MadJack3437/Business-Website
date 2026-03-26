@@ -56,7 +56,6 @@
             border-radius: 20px; background: var(--card-bg); cursor: pointer; text-align: center; margin: 20px 0; 
         }
 
-        /* Login Overlay */
         #login-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(2, 6, 23, 0.95); display: none; 
@@ -75,7 +74,6 @@
             background: var(--accent); color: white; font-weight: bold; cursor: pointer;
         }
 
-        /* Notifications */
         #success-toast {
             position: fixed; top: 20px; right: 20px; background: #22c55e; color: white;
             padding: 12px 24px; border-radius: 8px; font-weight: bold; transform: translateY(-100px);
@@ -83,7 +81,6 @@
         }
         #success-toast.show { transform: translateY(0); }
 
-        /* Dashboard Items */
         #top-three-banner {
             width: 100%; background: linear-gradient(135deg, var(--border) 0%, #3b0764 100%);
             border: 1px solid #a855f7; border-radius: 12px; padding: 15px; margin-bottom: 15px; display: none;
@@ -106,7 +103,6 @@
         #save-btn { background: #22c55e; color: white; }
         #reset-btn { background: var(--accent); color: white; }
 
-        /* Log Sections */
         .section-header { padding: 14px 20px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; border-radius: 12px; width: 100%; margin-bottom: 5px; text-transform: uppercase; font-weight: 900; }
         .mgmt-header { background: var(--header-gradient); color: #fff; border: 1px solid #fff; }
         .bc-header { background: linear-gradient(90deg, #1e293b, #78350f); color: #fbbf24; border: 1px solid #fbbf24; margin-top: 10px; }
@@ -114,7 +110,7 @@
         .ann-header { background: var(--primary); color: #020617; border: 1px solid #fff; margin-top: 10px; display: none; }
         
         .header-titles { display: grid; grid-template-columns: 2fr 1fr 1fr; width: 100%; font-size: 0.75rem; }
-        .slide-wrapper { max-height: 2000px; overflow: hidden; transition: max-height 0.4s ease-out; background: var(--card-bg); border-radius: 0 0 12px 12px; width: 100%; border: 1px solid var(--border); border-top: none; margin-bottom: 10px; }
+        .slide-wrapper { max-height: 5000px; overflow: hidden; transition: max-height 0.4s ease-out; background: var(--card-bg); border-radius: 0 0 12px 12px; width: 100%; border: 1px solid var(--border); border-top: none; margin-bottom: 10px; }
         .collapsed + .slide-wrapper { max-height: 0; border: none; visibility: hidden; }
         .arrow-icon { transition: 0.3s; font-size: 0.7rem; }
         .collapsed .arrow-icon { transform: rotate(-90deg); }
@@ -127,7 +123,6 @@
         #announcement-box { background: var(--bg); color: var(--text); padding: 15px; font-size: 0.85rem; white-space: pre-wrap; line-height: 1.5; font-family: monospace; }
         #copy-ann-btn { width: calc(100% - 30px); margin: 0 15px 15px 15px; padding: 12px; background: var(--primary); color: #fff; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; }
 
-        /* Back to Top */
         #back-to-top {
             position: fixed; bottom: 85px; right: 20px; background: var(--primary); color: white;
             width: 45px; height: 45px; border-radius: 50%; display: none; align-items: center; justify-content: center;
@@ -138,7 +133,6 @@
         .mgmt-btn { padding: 12px 30px; background: var(--card-bg); color: var(--accent); border: 2px solid var(--accent); border-radius: 10px; font-weight: 800; cursor: pointer; font-size: 0.85rem; transition: 0.3s;}
         .mgmt-btn:hover { background: var(--accent); color: white; }
 
-        /* Mobile */
         @media (max-width: 650px) {
             .stats-bar { flex-direction: column; gap: 15px; text-align: center; }
             .top-three-grid { grid-template-columns: 1fr; }
@@ -244,15 +238,24 @@
         function closeLogin() { document.getElementById('login-overlay').style.display = 'none'; }
         
         function checkLogin() {
-            if(document.getElementById('user-input').value.toUpperCase() === "ADMIN" && document.getElementById('pass-input').value === "ADMIN") {
-                alert("Access Granted. Redirecting to Management History...");
-                // In a real scenario, redirect here.
+            const user = document.getElementById('user-input').value.toUpperCase();
+            const pass = document.getElementById('pass-input').value;
+            if(user === "ADMIN" && pass === "ADMIN") {
+                sessionStorage.setItem('isAdmin', 'true');
+                window.location.href = "management.html"; 
             } else { document.getElementById('login-error').style.display = 'block'; }
         }
 
         fileInput.onchange = (e) => {
             const file = e.target.files[0];
             if(!file) return;
+
+            // FIX: Reset Save button for new file
+            const saveBtn = document.getElementById('save-btn');
+            saveBtn.disabled = false;
+            saveBtn.style.opacity = "1";
+            saveBtn.innerText = "Save Portal 💾";
+
             currentFileName = file.name;
             const reader = new FileReader();
             reader.onload = (ev) => {
@@ -265,7 +268,12 @@
         function triggerManualSave() {
             if(!currentFileData) return;
             const history = JSON.parse(localStorage.getItem('businessLogHistory')) || [];
-            history.push({ date: new Date().toLocaleString(), fileName: currentFileName, rawData: currentFileData });
+            
+            history.push({ 
+                date: new Date().toLocaleDateString(), 
+                fileName: currentFileName, 
+                rawData: currentFileData 
+            });
             localStorage.setItem('businessLogHistory', JSON.stringify(history));
             
             const toast = document.getElementById('success-toast');
