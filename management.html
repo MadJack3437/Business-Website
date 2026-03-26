@@ -13,16 +13,19 @@
         }
 
         header { text-align: center; padding: 20px 0 10px 0; flex-shrink: 0; }
-        .logo { width: 100px; border-radius: 50%; border: 2px solid #a855f7; box-shadow: 0 0 15px rgba(168, 85, 247, 0.3); }
-        h1 { color: #a855f7; text-transform: uppercase; letter-spacing: 2px; font-size: 1.2rem; margin: 10px 0; }
+        /* Red Logo Border */
+        .logo { width: 100px; border-radius: 50%; border: 2px solid #ef4444; box-shadow: 0 0 15px rgba(239, 68, 68, 0.3); }
+        /* Red Heading */
+        h1 { color: #ef4444; text-transform: uppercase; letter-spacing: 2px; font-size: 1.2rem; margin: 10px 0; }
         
-        .nav-link { color: #38bdf8; text-decoration: none; font-size: 0.85rem; font-weight: bold; margin-bottom: 10px; display: inline-block; }
+        .nav-link { color: #94a3b8; text-decoration: none; font-size: 0.85rem; font-weight: bold; margin-bottom: 10px; display: inline-block; }
+        .nav-link:hover { color: #ef4444; }
 
         /* Main Scrollable Content Area */
         .content-area {
             flex: 1; width: 100%; max-width: 900px; display: flex; flex-direction: column;
             align-items: center; overflow-y: auto; padding: 10px; box-sizing: border-box;
-            scrollbar-width: thin; scrollbar-color: #1e293b #020617;
+            scrollbar-width: thin; scrollbar-color: #ef4444 #020617;
         }
 
         /* Search Bar */
@@ -32,12 +35,13 @@
             background: #0f172a; color: white; font-size: 0.9rem; box-sizing: border-box;
             outline: none; transition: 0.3s;
         }
-        #staff-search:focus { border-color: #a855f7; box-shadow: 0 0 10px rgba(168, 85, 247, 0.2); }
+        /* Red Focus */
+        #staff-search:focus { border-color: #ef4444; box-shadow: 0 0 10px rgba(239, 68, 68, 0.2); }
 
-        /* Top Performer Spotlight */
+        /* Red Top Performer Spotlight */
         #top-member-banner {
-            width: 100%; background: linear-gradient(90deg, #1e293b, #3b0764);
-            border: 1px solid #a855f7; border-radius: 12px; padding: 15px;
+            width: 100%; background: linear-gradient(90deg, #1e293b, #7f1d1d);
+            border: 1px solid #ef4444; border-radius: 12px; padding: 15px;
             margin-bottom: 15px; text-align: center; display: none; box-sizing: border-box;
         }
 
@@ -46,7 +50,8 @@
             background: #1e293b; padding: 15px 20px; border-radius: 12px; margin-bottom: 15px; box-sizing: border-box; 
         }
         
-        .totals { font-weight: bold; color: #a855f7; font-size: 0.95rem; }
+        /* Red Totals */
+        .totals { font-weight: bold; color: #ef4444; font-size: 0.95rem; }
 
         .log-card {
             width: 100%; background: #0f172a; border: 1px solid #1e293b; 
@@ -54,9 +59,11 @@
             transition: transform 0.2s;
         }
         .log-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
-        .log-date { font-weight: bold; color: #38bdf8; }
+        /* Red Date Highlight */
+        .log-date { font-weight: bold; color: #f87171; }
         
-        .btn-red { background: #ef4444; color: white; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer; font-size: 0.75rem; font-weight: bold; }
+        .btn-red { background: #b91c1c; color: white; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer; font-size: 0.75rem; font-weight: bold; }
+        .btn-red:hover { background: #ef4444; }
 
         /* Fixed Footer */
         footer { 
@@ -64,15 +71,17 @@
             display: flex; justify-content: space-between; align-items: center;
             flex-shrink: 0; border-top: 1px solid #1e293b; box-sizing: border-box;
         }
-        .back-btn { padding: 12px 30px; background: #0f172a; color: #38bdf8; border: 2px solid #38bdf8; border-radius: 10px; font-weight: 800; cursor: pointer; text-decoration: none; font-size: 0.85rem; order: 2; }
+        /* Red Back Button */
+        .back-btn { padding: 12px 30px; background: #0f172a; color: #ef4444; border: 2px solid #ef4444; border-radius: 10px; font-weight: 800; cursor: pointer; text-decoration: none; font-size: 0.85rem; order: 2; }
+        .back-btn:hover { background: #ef4444; color: #020617; }
         
         .powered-by {
             font-size: 0.65rem; color: #475569; text-transform: uppercase; 
             letter-spacing: 1px; font-weight: 600; order: 1;
         }
 
-        /* Highlight for search matches */
-        .match-highlight { color: #4ade80; font-weight: bold; }
+        /* Red highlight for search matches */
+        .match-highlight { color: #f87171; font-weight: bold; }
     </style>
 </head>
 <body>
@@ -89,8 +98,8 @@
         </div>
 
         <div id="top-member-banner">
-            <h3 style="margin: 0; color: #e9d5ff; font-size: 0.8rem; text-transform: uppercase;">🏆 Current Top Performer</h3>
-            <p id="top-member-info" style="margin: 5px 0 0 0; font-weight: bold; color: #fdf4ff; font-size: 1.1rem;">No data saved yet</p>
+            <h3 style="margin: 0; color: #fecaca; font-size: 0.8rem; text-transform: uppercase;">🏆 Current Top Performer</h3>
+            <p id="top-member-info" style="margin: 5px 0 0 0; font-weight: bold; color: #ffffff; font-size: 1.1rem;">No data saved yet</p>
         </div>
 
         <div class="stats-bar">
@@ -122,7 +131,6 @@
             let grandTotalMins = 0;
             let firstLogMVP = "";
 
-            // We iterate backwards to show newest first
             const displayLogs = [...logs].reverse();
 
             displayLogs.forEach((log, index) => {
@@ -144,13 +152,11 @@
                     reportMins += mins;
                     grandTotalMins += mins;
 
-                    // MVP Logic
                     if (mins > reportTopMins) {
                         reportTopMins = mins;
                         reportTopMember = `${name} (${(mins/60).toFixed(1)} hrs)`;
                     }
 
-                    // Search Logic
                     if (searchTerm && (name.toLowerCase().includes(searchTerm) || id.includes(searchTerm))) {
                         foundInSearch = true;
                         searchMatchDetails += `• ${name}: <span class="match-highlight">${(mins/60).toFixed(1)} hrs</span><br>`;
@@ -159,14 +165,13 @@
 
                 if (index === 0) firstLogMVP = reportTopMember;
 
-                // Only display card if search matches or if search is empty
                 if (!searchTerm || foundInSearch) {
                     const card = document.createElement('div');
                     card.className = 'log-card';
                     card.innerHTML = `
                         <div class="log-header">
                             <span class="log-date">${log.date}</span>
-                            <span style="color:#4ade80; font-weight:bold;">${(reportMins/60).toFixed(1)} Total Hrs</span>
+                            <span style="color:#ef4444; font-weight:bold;">${(reportMins/60).toFixed(1)} Total Hrs</span>
                         </div>
                         <div style="font-size:0.8rem; color:#94a3b8;">
                             <strong>File:</strong> ${log.fileName}<br>
@@ -179,7 +184,7 @@
             });
 
             if (container.innerHTML === '') {
-                container.innerHTML = `<p style="text-align:center; color:#64748b; margin-top:20px;">No results found for "${searchTerm}"</p>`;
+                container.innerHTML = `<p style="text-align:center; color:#64748b; margin-top:20px;">No results found</p>`;
             }
 
             topBanner.style.display = firstLogMVP ? 'block' : 'none';
