@@ -100,6 +100,7 @@
         .actions button { padding: 10px 14px; border-radius: 8px; font-weight: bold; cursor: pointer; border: none; font-size: 0.75rem; transition: 0.2s; }
         
         #copy-btn { background: var(--primary); color: #fff; }
+        #alt-btn { background: #6366f1; color: white; } /* Indigo blue for alternative finder styling */
         #save-btn { background: #22c55e; color: white; }
         #reset-btn { background: var(--accent); color: white; }
 
@@ -186,6 +187,7 @@
                 <div class="totals"><span id="staff-count">Total: 0</span> | <span id="total-hours-sum">0 hrs</span></div>
                 <div class="actions">
                     <button id="copy-btn">Copy Logs 📋</button>
+                    <button id="alt-btn" onclick="openAltFinder()">Alt Finder 🔍</button>
                     <button id="save-btn" onclick="triggerManualSave()">Save Portal 💾</button>
                     <button id="reset-btn" onclick="location.reload()">Clear 🗑️</button>
                 </div>
@@ -244,6 +246,12 @@
                 sessionStorage.setItem('isAdmin', 'true');
                 window.location.href = "management.html"; 
             } else { document.getElementById('login-error').style.display = 'block'; }
+        }
+
+        function openAltFinder() {
+            // Opens a search link for a Discord Alt Finder in a new tab. 
+            // Replace the URL string inside quotes below if you have a specific tool page.
+            window.open("https://www.google.com/search?q=discord+alt+account+finder", "_blank");
         }
 
         fileInput.onchange = (e) => {
@@ -342,7 +350,6 @@
             allStaff.sort((a, b) => b.mins - a.mins);
             const topID = allStaff.length > 0 ? allStaff[0].id : "ID_HERE";
 
-            // UPDATED ANNOUNCEMENT: Exact formatting requested
             generatedAnnouncement = `___***Admin Work has been Completed***___
 Feel free to make suggestions in https://discord.com/channels/739604589627572286/1150135582513700875
 and if you need anything, feel free to dm a member of the team or make a https://discord.com/channels/739604589627572286/1148399710382608424 or a https://discord.com/channels/739604589627572286/1148398639207690290

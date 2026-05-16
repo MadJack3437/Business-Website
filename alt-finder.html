@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Discord Alt Finder & Investigator</title>
+    <style>
+        :root {
+            --bg: #020617;
+            --card-bg: #0f172a;
+            --text: #f1f5f9;
+            --sub-text: #94a3b8;
+            --border: #1e293b;
+            --primary: #6366f1; /* Investigative Indigo */
+            --accent: #ef4444;
+            --success: #22c55e;
+            --warning: #f59e0b;
+        }
+
+        .light-mode {
+            --bg: #f8fafc;
+            --card-bg: #ffffff;
+            --text: #0f172a;
+            --sub-text: #64748b;
+            --border: #e2e8f0;
+            --primary: #4f46e5;
+        }
+
+        html, body { 
+            margin: 0; padding: 0; width: 100%; min-height: 100vh; 
+            background-color: var(--bg); font-family: 'Inter', sans-serif; color: var(--text);
+            display: flex; flex-direction: column; align-items: center; overflow-x: hidden;
+            transition: background 0.3s ease, color 0.3s ease;
+        }
+
+        * { box-sizing: border-box; scrollbar-width: none; }
+        *::-webkit-scrollbar { display: none; }
+
+        header { text-align: center; padding: 20px 0 10px 0; width: 100%; position: relative; }
+        
+        .theme-toggle {
+            position: absolute; top: 20px; right: 20px;
+            background: var(--card-bg); border: 1px solid var(--border);
+            color: var(--text); padding: 8px; border-radius: 50%;
+            cursor: pointer; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;
+            z-index: 100; font-size: 1.2rem; box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+
+        .logo { width: 100px; border-radius: 50%; border: 2px solid var(--primary); box-shadow: 0 0 15px rgba(99, 102, 241, 0.3); }
+        h1 { color: var(--primary); text-transform: uppercase; letter-spacing: 2px; font-size: 1.2rem; margin: 10px 0; }
+        
+        .content-area { flex: 1; width: 95%; max-width: 1000px; display: flex; flex-direction: column; align-items: center; padding: 10px 0; }
+
+        .investigation-panel {
+            width: 100%; background: var(--card-bg); border: 1px solid var(--border);
+            border-radius: 20px; padding: 25px; margin-bottom: 20px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+        }
+
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; width: 100%; }
+
+        label { display: block; font-size: 0.8rem; font-weight: bold; text-transform: uppercase; margin-bottom: 8px; color: var(--sub-text); letter-spacing: 1px;}
+        input, select, textarea {
+            width: 100%; padding: 12px; border-radius: 8px; border: 1px solid var(--border);
+            background: var(--bg); color: var(--text); outline: none; font-family: inherit; font-size: 0.9rem; margin-bottom: 15px;
+        }
+
+        .btn-group { display: flex; gap: 10px; width: 100%; margin-top: 5px; }
+        button { 
+            flex: 1; padding: 12px; border-radius: 8px; font-weight: bold; cursor: pointer; border: none; 
+            font-size: 0.85rem; transition: 0.2s; display: flex; align-items: center; justify-content: center; gap: 6px;
+        }
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-secondary { background: var(--card-bg); color: var(--text); border: 1px solid var(--border); }
+        .btn-danger { background: var(--accent); color: white; }
+
+        .section-title { font-size: 0.9rem; font-weight: 900; text-transform: uppercase; color: var(--primary); margin: 25px 0 10px 0; width: 100%; letter-spacing: 1px;}
+
+        table { width: 100%; border-collapse: collapse; background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+        th { background: rgba(99, 102, 241, 0.1); color: var(--text); padding: 12px 15px; font-size: 0.8rem; text-align: left; text-transform: uppercase; border-bottom: 1px solid var(--border); }
+        td { padding: 12px 15px; border-bottom: 1px solid var(--border); font-size: 0.85rem; color: var(--text); }
+        tr:last-child td { border-bottom: none; }
+
+        .badge { padding: 4px 8px; border-radius: 6px; font-size: 0.7rem; font-weight: bold; text-transform: uppercase; display: inline-block; }
+        .badge-high { background: rgba(239, 68, 68, 0.2); color: var(--accent); border: 1px solid var(--accent); }
+        .badge-med { background: rgba(245, 158, 11, 0.2); color: var(--warning); border: 1px solid var(--warning); }
+        .badge-low { background: rgba(34, 197, 94, 0.2); color: var(--success); border: 1px solid var(--success); }
+
+        #toast {
+            position: fixed; top: 20px; right: 20px; background: var(--success); color: white;
+            padding: 12px 24px; border-radius: 8px; font-weight: bold; transform: translateY(-100px);
+            transition: 0.5s ease; z-index: 7000; box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        }
+        #toast.show { transform: translateY(0); }
+
+        .back-nav { position: absolute; top: 20px; left: 20px; text-decoration: none; font-size: 0.85rem; font-weight: bold; color: var(--sub-text); background: var(--card-bg); border: 1px solid var(--border); padding: 8px 16px; border-radius: 8px; transition: 0.2s; }
+        .back-nav:hover { color: var(--primary); border-color: var(--primary); }
+
+        @media (max-width: 768px) {
+            .grid-2 { grid-template-columns: 1fr; gap: 0; }
+            table, tr, td, th { display: block; width: 100%; }
+            th { display: none; }
+            td { text-align: right; padding-left: 50%; position: relative; border-bottom: 1px solid var(--border); }
+            td::before { content: attr(data-label); position: absolute; left: 15px; font-weight: bold; text-transform: uppercase; font-size: 0.75rem; color: var(--sub-text); }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="toast">Data Saved Successfully! 💾</div>
+
+    <header>
+        <a href="index.html" class="back-nav">← Back to Logs</a>
+        <button class="theme-toggle" onclick="toggleTheme()" id="theme-btn">🌙</button>
+        <img src="https://i.postimg.cc/dtHffs97/75cb50d9389d910e9781b944fceed68b.webp" alt="Logo" class="logo">
+        <h1>Discord Alt Finder & Case Logs</h1>
+    </header>
+
+    <div class="content-area">
+        <div class="investigation-panel">
+            <form id="alt-form" onsubmit="saveCase(event)">
+                <div class="grid-2">
+                    <div>
+                        <label for="suspect-id">Target Discord ID</label>
+                        <input type="text" id="suspect-id" required placeholder="e.g., 439604589627572286">
+                        
+                        <label for="suspect-tag">Target Username / Label</label>
+                        <input type="text" id="suspect-tag" required placeholder="e.g., UnknownUser#0000">
+
+                        <label for="risk-level">Suspected Connection Risk</label>
+                        <select id="risk-level">
+                            <option value="Low">Low Risk (Coincidence)</option>
+                            <option value="Medium" selected>Medium Risk (Strong Indicators)</option>
+                            <option value="High">High Risk (Confirmed/IP Match/Self-Admission)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="alt-ids">Discovered Linked Alt ID(s)</label>
+                        <input type="text" id="alt-ids" required placeholder="e.g., 789324589627572112, 11239845...">
+
+                        <label for="evidence-notes">Evidence & Overlap Notes</label>
+                        <textarea id="evidence-notes" rows="4" placeholder="Mention shared IP locations, typing patterns, similarities in speech, joined times, avatar themes, or active patterns..." required></textarea>
+                    </div>
+                </div>
+                <div class="btn-group">
+                    <button type="submit" class="btn-primary">Log Connection 🔍</button>
+                    <button type="button" class="btn-secondary" onclick="clearForm()">Reset Form</button>
+                </div>
+            </form>
+        </div>
+
+        <div class="section-title">⚖️ Logged Alt Investigations</div>
+        <div style="width: 100%; overflow-x: auto;">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Target User</th>
+                        <th>Linked Alt IDs</th>
+                        <th>Risk Severity</th>
+                        <th>Investigation Evidence</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="case-table-body">
+                    <!-- Dynamic Rows Insertion -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        function toggleTheme() {
+            document.body.classList.toggle('light-mode');
+            const btn = document.getElementById('theme-btn');
+            btn.innerText = document.body.classList.contains('light-mode') ? '☀️' : '🌙';
+        }
+
+        document.addEventListener("DOMContentLoaded", loadCases);
+
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            toast.innerText = message;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 3000);
+        }
+
+        function clearForm() {
+            document.getElementById('alt-form').reset();
+        }
+
+        function saveCase(e) {
+            e.preventDefault();
+            
+            const suspectId = document.getElementById('suspect-id').value.trim();
+            const suspectTag = document.getElementById('suspect-tag').value.trim();
+            const altIds = document.getElementById('alt-ids').value.trim();
+            const riskLevel = document.getElementById('risk-level').value;
+            const notes = document.getElementById('evidence-notes').value.trim();
+
+            const cases = JSON.parse(localStorage.getItem('discordAltCases')) || [];
+            
+            cases.push({
+                id: Date.now(),
+                suspectId,
+                suspectTag,
+                altIds,
+                riskLevel,
+                notes
+            });
+
+            localStorage.setItem('discordAltCases', JSON.stringify(cases));
+            showToast("Alt Connection Documented! 💾");
+            clearForm();
+            loadCases();
+        }
+
+        function loadCases() {
+            const cases = JSON.parse(localStorage.getItem('discordAltCases')) || [];
+            const tbody = document.getElementById('case-table-body');
+            tbody.innerHTML = '';
+
+            if(cases.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; color:var(--sub-text); font-style:italic;">No custom alt cases tracked yet. Track items above.</td></tr>`;
+                return;
+            }
+
+            cases.forEach(c => {
+                const badgeClass = c.riskLevel === 'High' ? 'badge-high' : (c.riskLevel === 'Medium' ? 'badge-med' : 'badge-low');
+                
+                tbody.innerHTML += `
+                    <tr id="case-${c.id}">
+                        <td data-label="Target User"><strong>${c.suspectTag}</strong><br><span style="font-size:0.75rem; color:var(--sub-text); font-family:monospace;">${c.suspectId}</span></td>
+                        <td data-label="Linked Alt IDs" style="font-family:monospace; font-size:0.75rem; color:var(--primary);">${c.altIds}</td>
+                        <td data-label="Risk Severity"><span class="badge ${badgeClass}">${c.riskLevel}</span></td>
+                        <td data-label="Investigation Evidence" style="max-width:300px; font-size:0.8rem; color:var(--sub-text); white-space:pre-wrap;">${c.notes}</td>
+                        <td data-label="Actions"><button onclick="deleteCase(${c.id})" class="btn-danger" style="padding:6px 10px; font-size:0.7rem; display:inline-block; width:auto; flex:none;">Delete</button></td>
+                    </tr>
+                `;
+            });
+        }
+
+        function deleteCase(id) {
+            let cases = JSON.parse(localStorage.getItem('discordAltCases')) || [];
+            cases = cases.filter(c => c.id !== id);
+            localStorage.setItem('discordAltCases', JSON.stringify(cases));
+            showToast("Case File Removed! 🗑️");
+            loadCases();
+        }
+    </script>
+</body>
+</html>
