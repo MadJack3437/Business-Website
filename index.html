@@ -3,104 +3,136 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>AI Weekly Schedule Planner</title>
+    <title>AI Weekly Schedule Planner Pro</title>
+    
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js"></script>
+    
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <script src="https://apis.google.com/js/api.js" async defer></script>
     
     <style>
         :root {
-            --bg: #020617;
-            --card-bg: #0f172a;
-            --text: #f1f5f9;
-            --sub-text: #94a3b8;
-            --border: #1e293b;
+            --bg: #090d16;
+            --card-bg: #111827;
+            --text: #f9fafb;
+            --sub-text: #9ca3af;
+            --border: #1f2937;
             --primary: #38bdf8;
-            --accent: #ef4444;
-            --success: #22c55e;
+            --primary-hover: #0ea5e9;
+            --accent: #f43f5e;
+            --success: #10b981;
         }
 
         .light-mode {
-            --bg: #f8fafc;
+            --bg: #f3f4f6;
             --card-bg: #ffffff;
-            --text: #0f172a;
-            --sub-text: #64748b;
-            --border: #e2e8f0;
-            --primary: #0ea5e9;
-            --accent: #dc2626;
+            --text: #111827;
+            --sub-text: #6b7280;
+            --border: #e5e7eb;
+            --primary: #0284c7;
+            --primary-hover: #0369a1;
+            --accent: #e11d48;
         }
 
         html, body { 
             margin: 0; padding: 0; width: 100%; min-height: 100vh; 
             background-color: var(--bg); font-family: 'Inter', sans-serif; color: var(--text);
             display: flex; flex-direction: column; align-items: center; overflow-x: hidden;
-            transition: background 0.3s ease, color 0.3s ease;
+            transition: background 0.2s ease, color 0.2s ease;
         }
 
         * { box-sizing: border-box; }
 
-        header { text-align: center; padding: 30px 0 10px 0; width: 100%; position: relative; }
+        header { 
+            display: flex; justify-content: space-between; align-items: center;
+            width: 95%; max-width: 1200px; padding: 20px 0; border-bottom: 1px solid var(--border);
+        }
         
+        .header-controls { display: flex; gap: 10px; align-items: center; }
+
         .theme-toggle {
-            position: absolute; top: 25px; right: 20px;
             background: var(--card-bg); border: 1px solid var(--border);
             color: var(--text); padding: 8px; border-radius: 50%;
             cursor: pointer; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;
-            z-index: 100; font-size: 1.2rem; box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            font-size: 1.1rem; box-shadow: 0 4px 6px rgba(0,0,0,0.05);
         }
 
-        h1 { color: var(--primary); text-transform: uppercase; letter-spacing: 2px; font-size: 1.4rem; margin: 10px 0; font-weight: 900; }
+        h1 { color: var(--primary); font-size: 1.3rem; margin: 0; font-weight: 900; letter-spacing: 1px; text-transform: uppercase; }
         
-        .content-area { flex: 1; width: 95%; max-width: 1200px; display: flex; flex-direction: column; align-items: center; padding: 10px 0; }
+        .content-area { flex: 1; width: 95%; max-width: 1200px; display: flex; flex-direction: column; align-items: center; padding: 20px 0; }
+
+        .onboarding-grid {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 20px; width: 100%; max-width: 1200px; margin-bottom: 20px;
+        }
+
+        .config-card {
+            background: var(--card-bg); border: 1px solid var(--border); border-radius: 16px; padding: 25px;
+            display: flex; flex-direction: column; justify-content: center;
+        }
 
         #drop-zone { 
-            width: 100%; max-width: 700px; padding: 40px 20px; border: 2px dashed var(--border); 
-            border-radius: 20px; background: var(--card-bg); cursor: pointer; text-align: center; margin: 20px 0; 
-            transition: border-color 0.2s;
+            border: 2px dashed var(--border); border-radius: 16px; background: var(--card-bg); 
+            cursor: pointer; text-align: center; padding: 40px 20px; transition: all 0.2s ease;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
         }
-        #drop-zone:hover { border-color: var(--primary); }
-        #drop-zone p { margin: 8px 0; font-size: 1rem; color: var(--sub-text); }
-        #drop-zone .highlight-text { color: var(--primary); font-weight: bold; }
+        #drop-zone:hover { border-color: var(--primary); background: rgba(56, 189, 248, 0.02); }
+        #drop-zone p { margin: 6px 0; font-size: 0.95rem; color: var(--sub-text); }
+        #drop-zone .highlight-text { color: var(--primary); font-weight: 700; font-size: 1.1rem; }
+
+        .account-status { display: flex; align-items: center; gap: 12px; margin-top: 15px; }
+        .status-badge { width: 10px; height: 10px; border-radius: 50%; background: var(--accent); }
+        .status-badge.connected { background: var(--success); }
 
         #loading-overlay {
             display: none; align-items: center; justify-content: center; gap: 10px;
-            margin: 15px 0; font-weight: bold; color: var(--primary);
+            margin-bottom: 20px; font-weight: 600; color: var(--primary); background: rgba(56, 189, 248, 0.1);
+            padding: 12px 20px; border-radius: 10px; width: 100%; box-shadow: 0 2px 5px rgba(0,0,0,0.05);
         }
 
         .stats-bar { 
             width: 100%; display: flex; justify-content: space-between; align-items: center; 
-            background: var(--card-bg); padding: 15px 20px; border-radius: 12px; margin-bottom: 15px; border: 1px solid var(--border);
+            background: var(--card-bg); padding: 15px 20px; border-radius: 12px; margin-bottom: 20px; border: 1px solid var(--border);
         }
-        .totals { font-weight: bold; color: var(--text); font-size: 0.95rem; }
-        .actions { display: flex; gap: 8px; }
-        .actions button { padding: 10px 16px; border-radius: 8px; font-weight: bold; cursor: pointer; border: none; font-size: 0.8rem; transition: 0.2s; }
+        .totals { font-weight: 700; color: var(--text); font-size: 0.95rem; }
+        .actions { display: flex; gap: 10px; }
         
-        #gcal-btn { background: var(--primary); color: #020617; }
-        #clear-btn { background: var(--accent); color: white; }
+        button.btn { 
+            padding: 10px 18px; border-radius: 8px; font-weight: 700; cursor: pointer; border: none; 
+            font-size: 0.8rem; transition: background 0.15s ease; display: inline-flex; align-items: center; gap: 6px;
+        }
+        
+        .btn-primary { background: var(--primary); color: #090d16; }
+        .btn-primary:hover { background: var(--primary-hover); }
+        .btn-secondary { background: var(--border); color: var(--text); border: 1px solid rgba(255,255,255,0.05); }
+        .btn-danger { background: var(--accent); color: white; }
 
         #calendar-container {
             width: 100%; background: var(--card-bg); border: 1px solid var(--border);
-            border-radius: 16px; padding: 20px; margin-bottom: 40px; box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            border-radius: 16px; padding: 20px; margin-bottom: 40px; box-shadow: 0 10px 30px rgba(0,0,0,0.1);
         }
 
-        /* FullCalendar Custom Theming */
+        /* FullCalendar Custom Overrides */
         .fc { --fc-border-color: var(--border); --fc-page-bg-color: var(--card-bg); color: var(--text); }
-        .fc .fc-col-header-cell-cushion { color: var(--text); padding: 10px 0; text-transform: uppercase; font-size: 0.85rem; letter-spacing: 1px; }
+        .fc .fc-col-header-cell-cushion { color: var(--text); padding: 12px 0; text-transform: uppercase; font-size: 0.8rem; font-weight: 700; }
         .fc .fc-timegrid-slot-label-cushion { color: var(--sub-text); font-size: 0.75rem; }
         .fc-theme-standard .fc-scrollgrid { border-radius: 12px; overflow: hidden; }
-        .fc-event { background-color: rgba(56, 189, 248, 0.15) !important; border: 1px solid var(--primary) !important; color: var(--text) !important; padding: 2px 4px; border-radius: 4px; }
+        .fc-event { background-color: rgba(56, 189, 248, 0.12) !important; border-left: 4px solid var(--primary) !important; border-top: none!important; border-right: none!important; border-bottom: none!important; color: var(--text) !important; padding: 4px; }
+        .fc-event-title { font-weight: 700; font-size: 0.8rem; }
 
         #toast {
             position: fixed; top: 20px; right: 20px; background: var(--success); color: white;
-            padding: 12px 24px; border-radius: 8px; font-weight: bold; transform: translateY(-100px);
-            transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); z-index: 7000; box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            padding: 14px 28px; border-radius: 8px; font-weight: 700; transform: translateY(-100px);
+            transition: 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); z-index: 9000; box-shadow: 0 10px 25px rgba(0,0,0,0.2);
         }
         #toast.show { transform: translateY(0); }
 
-        footer { width: 100%; padding: 20px; text-align: center; border-top: 1px solid var(--border); margin-top: auto; font-size: 0.75rem; color: var(--sub-text); }
+        footer { width: 100%; padding: 25px; text-align: center; border-top: 1px solid var(--border); font-size: 0.75rem; color: var(--sub-text); background: var(--card-bg); }
 
-        @media (max-width: 650px) {
+        @media (max-width: 850px) {
+            .onboarding-grid { grid-template-columns: 1fr; }
             .stats-bar { flex-direction: column; gap: 15px; text-align: center; }
             .actions { width: 100%; justify-content: center; }
             .actions button { flex: 1; }
@@ -112,26 +144,44 @@
     <div id="toast">Action Successful! 📋</div>
 
     <header>
-        <button class="theme-toggle" onclick="toggleTheme()" id="theme-btn">🌙</button>
-        <h1>Weekly Schedule Planner</h1>
+        <h1>AI Schedule Engine</h1>
+        <div class="header-controls">
+            <button class="theme-toggle" onclick="toggleTheme()" id="theme-btn">🌙</button>
+        </div>
     </header>
 
     <div class="content-area">
-        <div id="drop-zone" onclick="document.getElementById('file-input').click()">
-            <p class="highlight-text">📸 Drop schedule image here or click to browse</p>
-            <p style="font-size: 0.8rem;">Supports PNG, JPG, or JPEG print tables</p>
-            <input type="file" id="file-input" accept="image/*" hidden>
+        
+        <div class="onboarding-grid">
+            <div class="config-card">
+                <h2 style="margin: 0 0 10px 0; font-size: 1.1rem;">1. Google Account Link</h2>
+                <p style="margin: 0 0 15px 0; font-size: 0.85rem; color: var(--sub-text);">Link your profile to push schedule updates directly into your calendar cloud.</p>
+                <div>
+                    <button id="auth-btn" class="btn btn-primary" onclick="handleAuthClick()">Link Google Account 🔑</button>
+                    <button id="signout-btn" class="btn btn-secondary" onclick="handleSignoutClick()" style="display: none;">Disconnect</button>
+                </div>
+                <div class="account-status">
+                    <div id="status-indicator" class="status-badge"></div>
+                    <span id="status-text" style="font-size: 0.8rem; font-weight: 600;">Account Disconnected</span>
+                </div>
+            </div>
+
+            <div id="drop-zone" onclick="document.getElementById('file-input').click()">
+                <p class="highlight-text">2. Upload New Timetable Image</p>
+                <p style="font-size: 0.8rem;">Click or drag photo roster directly here</p>
+                <input type="file" id="file-input" accept="image/*" hidden>
+            </div>
         </div>
 
         <div id="loading-overlay">
-            <span>🔄 AI is converting your schedule image into data...</span>
+            <span>⚡ Analyzing Image layout & normalizing timestamps...</span>
         </div>
         
         <div class="stats-bar">
-            <div class="totals">Active Schedule Dashboard</div>
+            <div class="totals" id="week-range-display">Current Target Week</div>
             <div class="actions">
-                <button id="gcal-btn" onclick="syncToGoogleCalendar()">Sync to Google Calendar 📅</button>
-                <button id="clear-btn" onclick="clearSchedule()">Clear Cache 🗑️</button>
+                <button id="gcal-btn" class="btn btn-primary" onclick="syncAllEventsToGoogle()">Push to Google Calendar 🚀</button>
+                <button id="clear-btn" class="btn btn-danger" onclick="clearSchedule()">Wipe Cache 🗑️</button>
             </div>
         </div>
 
@@ -141,174 +191,241 @@
     </div>
 
     <footer>
-        <span>AI Schedule Parser Dashboard &copy; 2026</span>
+        <span>Engine Core Integration &copy; 2026</span>
     </footer>
 
     <script>
+        // --- GOOGLE API CONFIGURATION CREDENTIALS ---
+        // Replace these placeholders with credentials from your Google Cloud Console project
+        const CLIENT_ID = 'YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com';
+        const API_KEY = 'YOUR_GOOGLE_API_KEY';
+        const SCOPES = 'https://www.googleapis.com/auth/calendar.events';
+
+        let tokenClient;
+        let gapiInited = false;
+        let ghisInited = false;
         let calendarInstance = null;
 
         document.addEventListener('DOMContentLoaded', () => {
+            checkAndRotateWeeklyCache();
             initCalendar();
             setupDragAndDrop();
+            gapiLoad();
+            gisLoad();
         });
 
-        function toggleTheme() {
-            document.body.classList.toggle('light-mode');
-            const btn = document.getElementById('theme-btn');
-            btn.innerText = document.body.classList.contains('light-mode') ? '☀️' : '🌙';
-            if (calendarInstance) calendarInstance.render();
+        // --- CACHE LIFECYCLE MANAGEMENT (Auto-rotates when week changes) ---
+        function getWeeklyToken() {
+            const d = new Date();
+            const day = d.getDay();
+            const diff = d.getDate() - day + (day === 0 ? -6 : 1); // Monday date
+            const mon = new Date(d.setDate(diff));
+            return `${mon.getFullYear()}-W${getWeekNumber(mon)}`;
         }
 
-        function showToast(message, isError = false) {
-            const toast = document.getElementById('toast');
-            toast.innerText = message;
-            toast.style.background = isError ? "var(--accent)" : "var(--success)";
-            toast.classList.add('show');
-            setTimeout(() => toast.classList.remove('show'), 3500);
+        function getWeekNumber(d) {
+            const date = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+            date.setUTCDate(date.getUTCDate() + 4 - (date.getUTCDay()||7));
+            const startOfYear = new Date(Date.UTC(date.getUTCFullYear(),0,1));
+            return Math.ceil((((date - startOfYear) / 86400000) + 1)/7);
         }
 
-        // --- LOCAL STORAGE CACHE HANDLERS ---
-        function getCachedEvents() {
-            const stored = localStorage.getItem('weekly_schedule_events');
-            return stored ? JSON.parse(stored) : [];
+        function checkAndRotateWeeklyCache() {
+            const currentToken = getWeeklyToken();
+            const cachedToken = localStorage.getItem('schedule_week_token');
+            
+            if (cachedToken && cachedToken !== currentToken) {
+                // Wipe cache automatically if user opened app in a completely new week
+                localStorage.removeItem('weekly_schedule_events');
+            }
+            localStorage.setItem('schedule_week_token', currentToken);
         }
 
-        function saveEventsToCache(events) {
-            localStorage.setItem('weekly_schedule_events', JSON.stringify(events));
+        // --- GOOGLE OAUTH SECURITY LAYERS ---
+        function gapiLoad() { gapi.load('client', initializeGapiClient); }
+        async function initializeGapiClient() {
+            await gapi.client.init({ apiKey: API_KEY, discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/calendar/v3/rest'] });
+            gapiInited = true;
+            toggleAuthStatusDisplay();
+        }
+        function gisLoad() {
+            tokenClient = google.accounts.oauth2.initTokenClient({
+                client_id: CLIENT_ID, scope: SCOPES, callback: '', // Handled dynamically inline
+            });
+            ghisInited = true;
+            toggleAuthStatusDisplay();
         }
 
-        // --- FULLCALENDAR RENDER ENGINE ---
+        function handleAuthClick() {
+            tokenClient.callback = async (resp) => {
+                if (resp.error !== undefined) throw (resp);
+                localStorage.setItem('gcal_token', JSON.stringify(resp));
+                toggleAuthStatusDisplay();
+                showToast("Google Account Linked successfully!");
+            };
+
+            // Request permission token via explicit popup prompt choice
+            if (gapi.client.getToken() === null) {
+                tokenClient.requestAccessToken({prompt: 'consent'});
+            } else {
+                tokenClient.requestAccessToken({prompt: ''});
+            }
+        }
+
+        function handleSignoutClick() {
+            const token = gapi.client.getToken();
+            if (token !== null) {
+                google.accounts.oauth2.revokeToken(token.access_token);
+                gapi.client.setToken(null);
+                localStorage.removeItem('gcal_token');
+                toggleAuthStatusDisplay();
+                showToast("Disconnected account authorization sync.");
+            }
+        }
+
+        function toggleAuthStatusDisplay() {
+            const indicator = document.getElementById('status-indicator');
+            const text = document.getElementById('status-text');
+            const authBtn = document.getElementById('auth-btn');
+            const signoutBtn = document.getElementById('signout-btn');
+
+            // Restore token from cache if present
+            const storedToken = localStorage.getItem('gcal_token');
+            if (storedToken && gapiInited && gapi.client.getToken() === null) {
+                gapi.client.setToken(JSON.parse(storedToken));
+            }
+
+            if (gapi.client.getToken() !== null) {
+                indicator.classList.add('connected');
+                text.innerText = "Linked and Verified";
+                authBtn.style.display = 'none';
+                signoutBtn.style.display = 'inline-block';
+            } else {
+                indicator.classList.remove('connected');
+                text.innerText = "Account Disconnected";
+                authBtn.style.display = 'inline-block';
+                signoutBtn.style.display = 'none';
+            }
+        }
+
+        // --- CALENDAR RENDER ENGINE ---
         function initCalendar() {
             const calendarEl = document.getElementById('calendar');
             const cachedEvents = getCachedEvents();
+            
+            const startOfWeek = getUpcomingMonday();
+            const endOfWeek = new Date(startOfWeek.getTime() + (6 * 86400000));
+            document.getElementById('week-range-display').innerText = `Target View: ${startOfWeek.toLocaleDateString()} - ${endOfWeek.toLocaleDateString()}`;
 
             calendarInstance = new FullCalendar.Calendar(calendarEl, {
                 initialView: 'timeGridWeek',
-                slotMinTime: '07:00:00', // Adjust starting timeline view limits
-                slotMaxTime: '23:00:00', // Adjust ending time view limits
+                slotMinTime: '07:00:00',
+                slotMaxTime: '22:00:00',
                 allDaySlot: false,
-                headerToolbar: {
-                    left: 'prev,next today',
-                    center: 'title',
-                    right: 'timeGridWeek,timeGridDay'
-                },
+                headerToolbar: { left: '', center: 'title', right: '' },
                 events: cachedEvents,
                 height: 'auto'
             });
-
             calendarInstance.render();
         }
 
-        // --- FILE HANDLING & AI PARSING CONTROLLER ---
-        const fileInput = document.getElementById('file-input');
-        fileInput.onchange = (e) => {
-            const file = e.target.files[0];
-            if (file) parseImageWithAI(file);
-        };
-
-        function setupDragAndDrop() {
-            const dropZone = document.getElementById('drop-zone');
-            ['dragenter', 'dragover'].forEach(eventName => {
-                dropZone.addEventListener(eventName, (e) => { e.preventDefault(); dropZone.style.borderColor = "var(--primary)"; }, false);
-            });
-            ['dragleave', 'drop'].forEach(eventName => {
-                dropZone.addEventListener(eventName, (e) => { e.preventDefault(); dropZone.style.borderColor = "var(--border)"; }, false);
-            });
-            dropZone.addEventListener('drop', (e) => {
-                const file = e.dataTransfer.files[0];
-                if (file && file.type.startsWith('image/')) parseImageWithAI(file);
-            });
-        }
-
+        // --- RUNTIME SCHEDULER DATA EXTRACTOR ---
         async function parseImageWithAI(file) {
             const loader = document.getElementById('loading-overlay');
             loader.style.display = 'flex';
-
             const formData = new FormData();
             formData.append('scheduleImage', file);
 
             try {
-                // Target your local engine or serverless backend endpoint route here
-                const response = await fetch('/api/parse-schedule', {
-                    method: 'POST',
-                    body: formData
-                });
+                const response = await fetch('/api/parse-schedule', { method: 'POST', body: formData });
+                if (!response.ok) throw new Error("Processing breakdown.");
                 
-                if (!response.ok) throw new Error("Server failed processing request.");
+                const rawAiOutput = await response.json();
                 
-                const structuredEvents = await response.json();
+                // Align raw text output dates to this week's realistic standard calendar stamps
+                const mappedEvents = normalizeDatesToCurrentWeek(rawAiOutput);
                 
-                // Save clean formatted structural models onto internal local cache
-                saveEventsToCache(structuredEvents);
-                
-                // Dynamically update the application view layer on completion
+                saveEventsToCache(mappedEvents);
                 if(calendarInstance) {
                     calendarInstance.removeAllEvents();
-                    calendarInstance.addEventSource(structuredEvents);
+                    calendarInstance.addEventSource(mappedEvents);
                 }
-                
-                showToast("Schedule imported and rendered successfully!");
+                showToast("Schedule structuralized into active UI elements!");
             } catch (error) {
                 console.error(error);
-                // Mock execution fallback layout for safe playground structural visual testing:
-                generateMockParsedSchedule();
+                generateSimulatedTimetable(); // Local fallback demonstration engine
             } finally {
                 loader.style.display = 'none';
             }
         }
 
-        // Fallback simulation generator if you test without a cloud backend connected yet
-        function generateMockParsedSchedule() {
-            const targetMonday = getUpcomingMonday();
-            const formatIso = (dateStr, timeStr) => `${dateStr}T${timeStr}:00`;
+        // Normalizes days (e.g. "Monday") into current ISO timestamps dynamically
+        function normalizeDatesToCurrentWeek(rawEvents) {
+            const baseMonday = getUpcomingMonday();
+            const dayOffsetMap = { 'monday': 0, 'tuesday': 1, 'wednesday': 2, 'thursday': 3, 'friday': 4, 'saturday': 5, 'sunday': 6 };
             
-            const monDate = targetMonday.toISOString().split('T')[0];
-            const tueDate = new Date(targetMonday.getTime() + 86400000).toISOString().split('T')[0];
-
-            const mockEvents = [
-                { title: "Check In", start: formatIso(monDate, "11:00"), end: formatIso(monDate, "12:15") },
-                { title: "Lunch / Dishes Crew", start: formatIso(monDate, "12:15"), end: formatIso(monDate, "12:45") },
-                { title: "Waterfront + Canoeing Setup", start: formatIso(monDate, "14:30"), end: formatIso(monDate, "16:30") },
-                { title: "Breakfast Activities", start: formatIso(tueDate, "08:00"), end: formatIso(tueDate, "09:15") },
-                { title: "Archery / Go-Karts (Group Multi)", start: formatIso(tueDate, "09:30"), end: formatIso(tueDate, "10:10") }
-            ];
-
-            saveEventsToCache(mockEvents);
-            if(calendarInstance) {
-                calendarInstance.removeAllEvents();
-                calendarInstance.addEventSource(mockEvents);
-            }
-            showToast("Showing local mock setup parsing layout demonstration data.", true);
+            return rawEvents.map(event => {
+                const targetDayStr = event.day.toLowerCase().trim();
+                const offset = dayOffsetMap[targetDayStr] ?? 0;
+                
+                const eventDate = new Date(baseMonday.getTime() + (offset * 86400000));
+                const dateIsoStr = eventDate.toISOString().split('T')[0];
+                
+                return {
+                    title: event.title,
+                    start: `${dateIsoStr}T${event.startTime}:00`,
+                    end: `${dateIsoStr}T${event.endTime}:00`
+                };
+            });
         }
 
-        function getUpcomingMonday() {
-            const d = new Date();
-            const day = d.getDay(), diff = d.getDate() - day + (day === 0 ? -6 : 1);
-            return new Date(d.setDate(diff));
-        }
-
-        // --- CLEAN UP ELEMENT COMMAND ---
-        function clearSchedule() {
-            if (confirm("Are you sure you want to completely wipe out the schedule cache from this device?")) {
-                localStorage.removeItem('weekly_schedule_events');
-                if (calendarInstance) {
-                    calendarInstance.removeAllEvents();
-                }
-                showToast("Local device cache cleared!");
-            }
-        }
-
-        // --- GOOGLE CALENDAR API CONNECTOR HOOK ---
-        function syncToGoogleCalendar() {
-            const currentEvents = getCachedEvents();
-            if(currentEvents.length === 0) {
-                showToast("There are no active loaded events to synchronize.", true);
+        // --- SYSTEM SYNC PUSH ENGINE (Google Calendar API Write) ---
+        async function syncAllEventsToGoogle() {
+            if (gapi.client.getToken() === null) {
+                showToast("Please authenticate your Google Profile account step 1 first.", true);
                 return;
             }
-            
-            showToast("Initiating secure integration link routing...");
-            // Integrate with Google Identity GAPI OAuth tokens inside this code block downstream
+
+            const currentEvents = getCachedEvents();
+            if (currentEvents.length === 0) {
+                showToast("No active schedules loaded to process synchronization.", true);
+                return;
+            }
+
+            showToast("Pushing timeline logs to Google Cloud...");
+
+            try {
+                for (const ev of currentEvents) {
+                    const resource = {
+                        'summary': ev.title,
+                        'start': { 'dateTime': new Date(ev.start).toISOString() },
+                        'end': { 'dateTime': new Date(ev.end).toISOString() }
+                    };
+                    
+                    // Fire insert command request array pipelines directly over the REST API endpoint
+                    await gapi.client.calendar.events.insert({
+                        'calendarId': 'primary',
+                        'resource': resource
+                    });
+                }
+                showToast("All items synced completely to Google Calendar! 🎉");
+            } catch (err) {
+                console.error(err);
+                showToast("Network pipeline writing block failed.", true);
+            }
         }
-    </script>
-</body>
-</html>
+
+        // --- CONTEXT UTILITIES ---
+        function getCachedEvents() { return JSON.parse(localStorage.getItem('weekly_schedule_events')) || []; }
+        function saveEventsToCache(events) { localStorage.setItem('weekly_schedule_events', JSON.stringify(events)); }
+        function toggleTheme() {
+            document.body.classList.toggle('light-mode');
+            const btn = document.getElementById('theme-btn');
+            btn.innerText = document.body.classList.contains('light-mode') ? '☀️' : '🌙';
+        }
+        function getUpcomingMonday() {
+            const d = new Date(); const day = d.getDay(), diff = d.getDate() - day + (day === 0 ? -6 : 1);
+            return new Date(d.getFullYear(), d.getMonth(), d.getDate() + (diff - d.getDate()));
+        }
+        function setupDragAndDrop() {
+            const dz = doc
